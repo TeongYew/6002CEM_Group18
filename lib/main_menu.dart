@@ -70,7 +70,7 @@ class _MainMenuState extends State<MainMenu> {
                         : "Please register your details by heading over to the Calorie Counter page."),
                     SizedBox(height: 20),
                     Text(existUser
-                        ? "Your target calories are ${(user.targetCalories - user.currentCalories).toString()}."
+                        ? "Your have ${(user.targetCalories - user.currentCalories).toString()} left for today."
                         : "Your target calories are not set yet."),
                     SizedBox(height: 20),
                     TextButton(
@@ -127,6 +127,7 @@ class _MainMenuState extends State<MainMenu> {
                       onPressed: () {
                         setState(() {
                           UserDatabase.instance.deleteAllUser();
+                          UserDatabase.instance.deleteAllFood();
                           existUser = false;
                         });
                       },

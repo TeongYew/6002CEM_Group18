@@ -15,13 +15,12 @@ class CalorieCounter extends StatefulWidget {
 class _CalorieCounterState extends State<CalorieCounter> {
   final _formKey = GlobalKey<FormState>();
 
-
   String name = "";
   int age = 0;
   double height = 0;
   double weight = 0;
   String goal = "";
-  double targetCalories = 0;
+  int targetCalories = 0;
 
   // @override
   // void initState(){
@@ -154,15 +153,14 @@ class _CalorieCounterState extends State<CalorieCounter> {
 
                     // Calculate the daily calorie needs based on the user's input.
                     //double targetCalories = 0;
+                    int bmr = (88.362 + (13.397 * weight) + (4.799 * height ) - (5.677 * age)).round() ;
+
                     if (goal == "Lose Weight") {
-                      targetCalories =
-                          655 + (9.6 * weight) - (4.8 * height) + (6.8 * age);
+                      targetCalories = (bmr * 0.85).round();
                     } else if (goal == "Gain Weight") {
-                      targetCalories =
-                          655 + (13.7 * weight) + (5.0 * height) - (6.8 * age);
+                      targetCalories = (bmr * 1.15).round();
                     } else {
-                      targetCalories =
-                          655 + (10 * weight) + (6.25 * height) - (5 * age);
+                      targetCalories = bmr;
                     }
 
                     User newUser = User(
@@ -172,7 +170,7 @@ class _CalorieCounterState extends State<CalorieCounter> {
                         height: height,
                         goal: goal,
                         targetCalories: targetCalories,
-                        currentCalories: 0.0);
+                        currentCalories: 0);
 
                     UserDatabase.instance.createUser(newUser);
 

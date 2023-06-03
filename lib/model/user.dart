@@ -24,8 +24,8 @@ class User {
   final double weight;
   final double height;
   final String goal;
-  final double targetCalories;
-  final double currentCalories;
+  final int targetCalories;
+  final int currentCalories;
 
   const User({
     this.id,
@@ -56,8 +56,8 @@ class User {
     double? weight,
     double? height,
     String? goal,
-    double? targetCalories,
-    double? currentCalories,
+    int? targetCalories,
+    int? currentCalories,
   }) =>
       User(
         id: id ?? this.id,
@@ -77,8 +77,8 @@ class User {
       weight: json[UserFields.weight] as double,
       height: json[UserFields.height] as double,
       goal: json[UserFields.goal] as String,
-      targetCalories: json[UserFields.targetCalories] as double,
-      currentCalories: json[UserFields.currentCalories] as double,
+      targetCalories: json[UserFields.targetCalories] as int,
+      currentCalories: json[UserFields.currentCalories] as int,
   );
 
 }

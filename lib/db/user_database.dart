@@ -52,8 +52,8 @@ class UserDatabase{
     ${UserFields.weight} $doubleType,
     ${UserFields.height} $doubleType,
     ${UserFields.goal} $textType,
-    ${UserFields.targetCalories} $doubleType,
-    ${UserFields.currentCalories} $doubleType
+    ${UserFields.targetCalories} $intType,
+    ${UserFields.currentCalories} $intType
     )
     ''');
 
@@ -62,7 +62,8 @@ class UserDatabase{
     ${FoodFields.id} $idType,
     ${FoodFields.foodName} $textType,
     ${FoodFields.calories} $doubleType,
-    ${FoodFields.dateTime} $textType
+    ${FoodFields.date} $textType,
+    ${FoodFields.time} $textType
     )
     ''');
 
@@ -169,14 +170,42 @@ class UserDatabase{
 
   }
 
-  Future<int> updateUserCurrentCalories(User user, double calories) async {
+  Future<int> updateUserCurrentCalories(User user, int calories) async {
     final db = await instance.database;
-    log(''''UPDATE ${tableUser}
-        SET currentCalories = ${calories}
-        WHERE ${UserFields.id} = ${user.id};''');
     return db.rawUpdate('''
       UPDATE ${tableUser}
       SET currentCalories = ${calories}
+      WHERE ${UserFields.id} = ${user.id};
+    ''');
+
+  }
+
+  Future<int> updateUserDetails(User user, int age, double weight, double height, String goal) async {
+    final db = await instance.database;
+
+    return db.rawUpdate('''
+      UPDATE ${tableUser}
+      SET age = ${age}, weight = ${weight}, height = ${height}, goal = '${goal}' 
+      WHERE ${UserFields.id} = ${user.id};
+    ''');
+
+  }
+
+  Future<int> updateUserTargetCalories(User user, int calories) async {
+    final db = await instance.database;
+    return db.rawUpdate('''
+      UPDATE ${tableUser}
+      SET targetCalories = ${calories}
+      WHERE ${UserFields.id} = ${user.id};
+    ''');
+
+  }
+
+  Future<int> updateUserTest(User user, int age, double weight, double height, String goal) async {
+    final db = await instance.database;
+    return db.rawUpdate('''
+      UPDATE ${tableUser}
+      SET age = ${age}, weight = ${weight}, height = ${height}, goal = '${goal}' 
       WHERE ${UserFields.id} = ${user.id};
     ''');
 
@@ -211,6 +240,28 @@ class UserDatabase{
 
   }
 
+  Future<List<Food>> readFoodUsingDate(String date) async {
+    //access the database
+    final db = await instance.database;
+    final orderBy = '${FoodFields.id} ASC';
+    final result = await db.query(
+      tableFood,
+      columns: FoodFields.values,
+      where: '${FoodFields.date} = ?',
+      whereArgs: [date],
+      orderBy: orderBy,
+    );
+
+    if(result.isNotEmpty){
+      //return a list of all the food
+      return result.map((json) => Food.fromJson(json)).toList();
+    }
+    else{
+      throw Exception('No food today');
+    }
+
+  }
+
   Future<List<Food>> readAllFood() async {
     //access the database
     final db = await instance.database;
@@ -238,6 +289,22 @@ class UserDatabase{
       tableFood,
       where: '${FoodFields.id} = ?',
       whereArgs: [id],
+    );
+  }
+
+  Future<int> deleteAllFoodToday(String date) async {
+    final db = await instance.database;
+    return await db.delete(
+      tableFood,
+      where: '${FoodFields.date} = ?',
+      whereArgs: [date],
+    );
+  }
+
+  Future<int> deleteAllFood() async {
+    final db = await instance.database;
+    return await db.delete(
+      tableFood,
     );
   }
 
