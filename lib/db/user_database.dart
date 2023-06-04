@@ -61,7 +61,7 @@ class UserDatabase{
     CREATE TABLE $tableFood (
     ${FoodFields.id} $idType,
     ${FoodFields.foodName} $textType,
-    ${FoodFields.calories} $doubleType,
+    ${FoodFields.calories} $intType,
     ${FoodFields.date} $textType,
     ${FoodFields.time} $textType
     )
