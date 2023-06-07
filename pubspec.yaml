@@ -31,6 +31,13 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # location
+  location: ^4.2.0
+
+  #OpenStreetMap
+  flutter_map: ^0.13.0
+  latlong: ^0.6.1
+
   # database storage
   sqflite: ^2.0.0+3
 
