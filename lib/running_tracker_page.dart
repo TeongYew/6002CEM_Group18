@@ -170,27 +170,27 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Card(
               child: Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Time Elapsed',
                       style: TextStyle(fontSize: 24),
                     ),
                     Text(
                       formattedTime,
                       style:
-                      TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+                      const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -229,7 +229,7 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
         ),
       ),
