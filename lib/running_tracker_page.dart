@@ -1,3 +1,4 @@
+import 'package:fitness_tracker_app/running_tracker_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -20,6 +21,11 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
   Location _location = Location();
   MapController _mapController = MapController();
 
+  late LocationData _previousLocation;
+  double _totalDistance = 0.0;
+
+  List<LatLng> _trailCoordinates = [];
+
   @override
   void initState() {
     super.initState();
@@ -29,46 +35,61 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
   }
 
   void _checkPermission() async {
-    PermissionStatus permissionStatus = await _location.hasPermission();
-    if (permissionStatus == PermissionStatus.denied) {
-      permissionStatus = await _location.requestPermission();
-      if (permissionStatus != PermissionStatus.granted) {
-        // Handle permission denied
-      }
-    }
-    if (permissionStatus == PermissionStatus.granted) {
-      _getCurrentLocation();
+    var locationPermission = await _location.requestPermission();
+    if (locationPermission != PermissionStatus.granted) {
+      // Handle location permission denied
     }
   }
 
   void _getCurrentLocation() async {
     try {
-      LocationData locationData = await _location.getLocation();
-      setState(() {
-        _currentLocation = locationData;
-      });
-      _moveToCurrentLocation();
+      _currentLocation = await _location.getLocation();
     } catch (e) {
-      print('Error: $e');
+      // Handle location error
     }
   }
 
   void _listenLocationChanges() {
-    _location.onLocationChanged.listen((LocationData locationData) {
+    _location.onLocationChanged.listen((LocationData? locationData) {
       setState(() {
         _currentLocation = locationData;
+        _moveToCurrentLocation();
+        if (_isRunning && _currentLocation != null) {
+          if (_previousLocation != null) {
+            _updateDistance();
+          }
+          _previousLocation = _currentLocation!;
+          _updateTrail(LatLng(
+            _currentLocation!.latitude!,
+            _currentLocation!.longitude!,
+          ));
+        }
       });
     });
   }
 
   void _moveToCurrentLocation() {
     if (_currentLocation != null) {
-      double? latitude = _currentLocation!.latitude;
-      double? longitude = _currentLocation!.longitude;
-      if (latitude != null && longitude != null) {
-        _mapController.move(LatLng(latitude, longitude), 15.0);
-      }
+      double latitude = _currentLocation!.latitude!;
+      double longitude = _currentLocation!.longitude!;
+      _mapController.move(LatLng(latitude, longitude), 15.0);
     }
+  }
+
+  void _updateDistance() {
+    double distanceInMeters = Distance().as(
+      LengthUnit.Meter,
+      LatLng(
+        _previousLocation!.latitude!,
+        _previousLocation!.longitude!,
+      ),
+      LatLng(
+        _currentLocation!.latitude!,
+        _currentLocation!.longitude!,
+      ),
+    );
+    _totalDistance += distanceInMeters / 1000; // Convert to kilometers
+    _previousLocation = _currentLocation!;
   }
 
   void _startTimer() {
@@ -83,15 +104,32 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
   void _stopTimer() {
     _stopwatch.stop();
     _timer.cancel();
-    setState(() {
-      _elapsedTime = _stopwatch.elapsed;
-    });
   }
 
   void _resetTimer() {
     _stopwatch.reset();
     setState(() {
       _elapsedTime = Duration.zero;
+      _totalDistance = 0.0; // Reset total distance
+      _trailCoordinates.clear(); // Reset trail coordinates
+    });
+  }
+
+  void _startTracking() {
+    _isRunning = true;
+    _trailCoordinates.clear();
+    _previousLocation = _currentLocation!; // Reset previous location
+    _startTimer();
+    _updateDistance(); // Update distance when tracking starts
+  }
+  void _stopTracking() {
+    _isRunning = false;
+    _stopTimer();
+  }
+
+  void _updateTrail(LatLng newLocation) {
+    setState(() {
+      _trailCoordinates.add(newLocation);
     });
   }
 
@@ -111,6 +149,17 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Running Tracker'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.history),
+            onPressed: (){
+              Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => RunningTrackerLog()),
+            );
+            }
+          ),
+        ],
       ),
       body: Center(
         child: Column(
@@ -128,16 +177,27 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
                     urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                     subdomains: ['a', 'b', 'c'],
                   ),
+                  PolylineLayerOptions(
+                    polylines: [
+                      Polyline(
+                        points: _trailCoordinates,
+                        color: Colors.blue,
+                        strokeWidth: 3.0,
+                      ),
+                    ],
+                  ),
                   MarkerLayerOptions(
                     markers: _currentLocation != null
                         ? [
                       Marker(
                         width: 40.0,
                         height: 40.0,
-                        point: LatLng(
+                        point: _currentLocation != null
+                            ? LatLng(
                           _currentLocation!.latitude!,
                           _currentLocation!.longitude!,
-                        ),
+                        )
+                            : LatLng(0, 0),
                         builder: (ctx) => Container(
                           child: Icon(
                             Icons.location_on,
@@ -162,7 +222,7 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
                       style: TextStyle(fontSize: 24),
                     ),
                     Text(
-                      '0.0 km',
+                      "${_totalDistance.toStringAsFixed(2)}km",
                       style:
                       TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
                     ),
@@ -170,7 +230,6 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -195,36 +254,20 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 IconButton(
-                  onPressed: () {
-                    if (!_isRunning) {
-                      _startTimer();
-                      setState(() {
-                        _isRunning = true;
-                      });
-                    }
-                  },
                   icon: Icon(Icons.play_arrow),
+                  onPressed: _isRunning ? null : _startTracking,
                   iconSize: 48,
+                  color: Colors.green,
                 ),
                 IconButton(
-                  onPressed: () {
-                    if (_isRunning) {
-                      _stopTimer();
-                      setState(() {
-                        _isRunning = false;
-                      });
-                    }
-                  },
                   icon: Icon(Icons.stop),
+                  onPressed: _isRunning ? _stopTracking : null,
                   iconSize: 48,
+                  color: Colors.red,
                 ),
                 IconButton(
-                  onPressed: () {
-                    if (!_isRunning) {
-                      _resetTimer();
-                    }
-                  },
                   icon: Icon(Icons.refresh),
+                  onPressed: _resetTimer,
                   iconSize: 48,
                 ),
               ],
