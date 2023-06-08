@@ -1,8 +1,12 @@
 import 'package:fitness_tracker_app/running_tracker_log.dart';
+import 'package:fitness_tracker_app/db/running_tracker_database.dart';
+import 'package:fitness_tracker_app/model/running_activity_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 import 'dart:async';
 
 class RunningTrackerPage extends StatefulWidget {
@@ -106,14 +110,29 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
     _timer.cancel();
   }
 
-  void _resetTimer() {
+  void _stopActivity() async {
+    _timer.cancel();
+    _stopwatch.stop();
+    _elapsedTime = _stopwatch.elapsed;
     _stopwatch.reset();
+    final double distance = _totalDistance; // Store the current total distance
+    _totalDistance = 0.0; // Reset total distance
+    _trailCoordinates.clear(); // Reset trail coordinates
+
+    final activity = RunningActivity(distance: distance, duration: _elapsedTime.inSeconds);
+    final dbHelper = DatabaseHelper();
+    await dbHelper.insertActivity(activity);
+
     setState(() {
-      _elapsedTime = Duration.zero;
-      _totalDistance = 0.0; // Reset total distance
-      _trailCoordinates.clear(); // Reset trail coordinates
+      _currentLocation = null;
     });
+
+    _elapsedTime = Duration.zero; // Reset elapsed time
   }
+
+
+
+
 
   void _startTracking() {
     _isRunning = true;
@@ -145,6 +164,9 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
     String formattedTime =
         '${_elapsedTime.inMinutes.remainder(60).toString().padLeft(2, '0')}:'
         '${_elapsedTime.inSeconds.remainder(60).toString().padLeft(2, '0')}';
+
+    Color _playButtonColor = Colors.black;
+    Color _pauseButtonColor = Colors.black;
 
     return Scaffold(
       appBar: AppBar(
@@ -260,14 +282,14 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
                   color: Colors.green,
                 ),
                 IconButton(
-                  icon: Icon(Icons.stop),
+                  icon: Icon(Icons.pause),
                   onPressed: _isRunning ? _stopTracking : null,
                   iconSize: 48,
                   color: Colors.red,
                 ),
                 IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: _resetTimer,
+                  icon: Icon(Icons.stop),
+                  onPressed: _stopActivity,
                   iconSize: 48,
                 ),
               ],
