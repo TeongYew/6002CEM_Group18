@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
 import 'dart:async';
 
 class RunningTrackerPage extends StatefulWidget {
@@ -175,10 +173,7 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
           IconButton(
             icon: Icon(Icons.history),
             onPressed: (){
-              Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RunningTrackerLog()),
-            );
+              Navigator.of(context).pushNamed(RunningTrackerLog.routeName);
             }
           ),
         ],

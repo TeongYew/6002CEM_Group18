@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fitness_tracker_app/db/running_tracker_database.dart';
 
 class RunningTrackerLog extends StatefulWidget {
+  static String routeName = '/runningTrackerLog';
   @override
   _RunningTrackerLogState createState() => _RunningTrackerLogState();
 }
