@@ -1,6 +1,8 @@
 import 'package:fitness_tracker_app/calorie_counter.dart';
 import 'package:fitness_tracker_app/calorie_tracker.dart';
 import 'package:fitness_tracker_app/main_menu.dart';
+import 'package:fitness_tracker_app/running_tracker_log.dart';
+import 'package:fitness_tracker_app/running_tracker_page.dart';
 import 'package:fitness_tracker_app/settings.dart';
 import 'package:flutter/material.dart';
 
@@ -12,12 +14,14 @@ class FitnessApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: MainMenu.routeName,
+      initialRoute: RunningTrackerPage.routeName,
       routes: {
         MainMenu.routeName : (context) => MainMenu(),
         CalorieTracker.routeName: (context) => CalorieTracker(),
         CalorieCounter.routeName: (context) => CalorieCounter(),
         Settings.routeName: (context) => Settings(),
+        RunningTrackerPage.routeName: (context)=> RunningTrackerPage(),
+        RunningTrackerLog.routeName: (context)=> RunningTrackerLog(),
       },
       debugShowCheckedModeBanner: false,
       title: "Fitness Tracker App",
