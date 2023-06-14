@@ -117,9 +117,14 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
     _totalDistance = 0.0; // Reset total distance
     _trailCoordinates.clear(); // Reset trail coordinates
 
+    if(_totalDistance == 0.0 && _elapsedTime == Duration.zero){
+      // Do nothing
+    } else {
     final activity = RunningActivity(distance: distance, duration: _elapsedTime.inSeconds);
     final dbHelper = DatabaseHelper();
     await dbHelper.insertActivity(activity);
+    Navigator.of(context).pushNamed(RunningTrackerLog.routeName);
+    }
 
     setState(() {
       _currentLocation = null;
