@@ -1,9 +1,12 @@
+import 'dart:developer';
+
 import 'package:fitness_tracker_app/calorie_counter.dart';
 import 'package:fitness_tracker_app/calorie_tracker.dart';
 import 'package:fitness_tracker_app/db/user_database.dart';
 import 'package:fitness_tracker_app/model/user.dart';
 import 'package:fitness_tracker_app/settings.dart';
 import 'package:flutter/material.dart';
+import 'package:cron/cron.dart';
 
 class MainMenu extends StatefulWidget {
   static String routeName = '/mainMenu';
@@ -16,13 +19,14 @@ class MainMenu extends StatefulWidget {
 class _MainMenuState extends State<MainMenu> {
   late User user;
   late bool existUser = false;
-  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
 
+    //get the user information and set cron
     refreshUser();
+    setCron();
   }
 
   @override
@@ -34,22 +38,69 @@ class _MainMenuState extends State<MainMenu> {
 
   Future refreshUser() async {
     setState(() {
-      isLoading = true;
     });
 
+    //check if there are any users
     this.existUser = await UserDatabase.instance.checkUser();
 
+    //if user exists, get the user information
     if (existUser) {
       this.user = await UserDatabase.instance.getUser();
-    } else
-      () {
+    }
+    else{
         this.existUser = false;
-      };
+    };
 
+    //refresh the page
     setState(() {
-      isLoading = false;
     });
   }
+
+  Future<void> setCron() async {
+    //initialise cron
+    final cron = Cron();
+
+    log('cron ran !');
+
+    try {
+      //schedule cron to run everyday at 00:00
+      //'sec, min, hr, day of month, month, day of week'
+      cron.schedule(Schedule.parse('00 00 00 * * *'), () async {
+
+        //reset the consumed calories
+        await UserDatabase.instance.updateUserCurrentCalories(user, 0);
+
+        //refresh the page
+        setState(() {
+          //refresh the user after updating
+          refreshUser();
+        });
+
+        log('cron resetted !');
+        // await cron.close();
+        // log('cron closed !');
+      });
+
+    } on ScheduleParseException {
+      //close cron if there is an exception
+      await cron.close();
+    }
+
+  }
+
+  void resetApp() async {
+
+    //delete the user and all the food
+    //set exist user to false
+    await UserDatabase.instance.deleteAllUser();
+    await UserDatabase.instance.deleteAllFood();
+    existUser = false;
+
+    //refresh the page
+    setState(() {});
+
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -84,24 +135,42 @@ class _MainMenuState extends State<MainMenu> {
                 SizedBox(height: 50),
                 ElevatedButton(
                   onPressed: () {
+                    // if user exist, don't allow entry
+                    // else, allow entry
                     if (existUser) {
+                      //display message to redirect user to go to Settings page
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("Update your details in Settings."),
                         ),
                       );
                     } else {
+                      //navigate to CalorieCounter page
                       Navigator.of(context).pushNamed(CalorieCounter.routeName);
                     }
                   },
-                  child: Text("Calorie Counter"),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.fastfood),
+                        SizedBox(width: 8),
+                        Text("Calorie Counter"),
+                      ],
+                    ),
+                  ),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
+                    // if user exist, allow entry
+                    // else, don't allow
                     if (existUser) {
+                      //navigate to CalorieTracker page
                       Navigator.of(context).pushNamed(CalorieTracker.routeName, arguments: user);
                     } else {
+                      //display message to redirect user to CalorieCounter page
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("Go to Calorie Counter."),
@@ -109,14 +178,28 @@ class _MainMenuState extends State<MainMenu> {
                       );
                     }
                   },
-                  child: Text("Calorie Tracker"),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.show_chart),
+                        SizedBox(width: 8),
+                        Text("Calorie Tracker"),
+                      ],
+                    ),
+                  ),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
+                    // if user exist, allow entry
+                    // else, don't allow
                     if (existUser) {
+                      //navigate to Settings page
                       Navigator.of(context).pushNamed(Settings.routeName, arguments: user);
                     } else {
+                      //display message to redirect user to CalorieCounter page
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text("Go to Calorie Counter."),
@@ -124,18 +207,35 @@ class _MainMenuState extends State<MainMenu> {
                       );
                     }
                   },
-                  child: Text("Settings"),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.settings),
+                        SizedBox(width: 8),
+                        Text("Settings"),
+                      ],
+                    ),
+                  ),
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    setState(() {
-                      UserDatabase.instance.deleteAllUser();
-                      UserDatabase.instance.deleteAllFood();
-                      existUser = false;
-                    });
+                    //reset the app
+                    resetApp();
                   },
-                  child: Text("Reset App"),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.refresh),
+                        SizedBox(width: 8),
+                        Text("Reset App"),
+                      ],
+                    ),
+                  ),
                 ),
                 SizedBox(height: 50),
               ],
@@ -147,93 +247,3 @@ class _MainMenuState extends State<MainMenu> {
   }
 
 }
-
-//@override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text("Fitness App"),
-//       ),
-//       body: RefreshIndicator(
-//         onRefresh: () async {refreshUser();},
-//         child: SingleChildScrollView(
-//           physics: const AlwaysScrollableScrollPhysics(),
-//           child: Center(
-//                 child: Column(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: [
-//                     Text(existUser
-//                         ? "Welcome back ${user.name}."
-//                         : "Please register your details by heading over to the Calorie Counter page."),
-//                     SizedBox(height: 20),
-//                     Text(existUser
-//                         ? "Your have ${(user.targetCalories - user.currentCalories).toString()} left for today."
-//                         : "Your target calories are not set yet."),
-//                     SizedBox(height: 20),
-//                     TextButton(
-//                       onPressed: () {
-//                         if (existUser) {
-//                           // Display the consumed calories to the user.
-//                           ScaffoldMessenger.of(context).showSnackBar(
-//                             SnackBar(
-//                               content: Text("To update your details, head over to Settings."),
-//                             ),
-//                           );
-//                         } else {
-//                           Navigator.of(context).pushNamed(CalorieCounter.routeName);
-//                         }
-//                       },
-//                       child: Text("Calorie Counter"),
-//                     ),
-//                     SizedBox(height: 10),
-//                     TextButton(
-//                       onPressed: () {
-//                         if (existUser) {
-//                           Navigator.of(context)
-//                               .pushNamed(CalorieTracker.routeName, arguments: user);
-//                         } else {
-//                           // Display the consumed calories to the user.
-//                           ScaffoldMessenger.of(context).showSnackBar(
-//                             SnackBar(
-//                               content: Text("Head over to Calorie Counter."),
-//                             ),
-//                           );
-//                         }
-//                       },
-//                       child: Text("Calorie Tracker"),
-//                     ),
-//                     SizedBox(height: 10),
-//                     TextButton(
-//                       onPressed: () {
-//                         if (existUser) {
-//                           Navigator.of(context)
-//                               .pushNamed(Settings.routeName, arguments: user);
-//                         } else {
-//                           // Display the consumed calories to the user.
-//                           ScaffoldMessenger.of(context).showSnackBar(
-//                             SnackBar(
-//                               content: Text("Head over to Calorie Counter."),
-//                             ),
-//                           );
-//                         }
-//                       },
-//                       child: Text("Settings"),
-//                     ),
-//                     SizedBox(height: 10),
-//                     TextButton(
-//                       onPressed: () {
-//                         setState(() {
-//                           UserDatabase.instance.deleteAllUser();
-//                           UserDatabase.instance.deleteAllFood();
-//                           existUser = false;
-//                         });
-//                       },
-//                       child: Text("Reset App"),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//         ),
-//       ),
-//     );
-//   }
