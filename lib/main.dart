@@ -14,7 +14,7 @@ class FitnessApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: RunningTrackerPage.routeName,
+      initialRoute: MainMenu.routeName,
       routes: {
         MainMenu.routeName : (context) => MainMenu(),
         CalorieTracker.routeName: (context) => CalorieTracker(),
@@ -26,12 +26,12 @@ class FitnessApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: "Fitness Tracker App",
       theme: ThemeData(
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: Color(0xFF0E2376),
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.grey,
         ),
-        appBarTheme: AppBarTheme(backgroundColor: Color(0xFF0E2376)),
+        appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF0E2376)),
         primarySwatch: Colors.blue,
       ),
       home: const MainMenu(),
