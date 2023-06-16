@@ -4,6 +4,9 @@ Mobile App Development
 
 Fitness Tracker App
 
+This is a repository for the development of a fitness tracker app. The fitness app will have 3 core features which are calorie tracking, running tracking, and step tracking. The calorie tracking features include being able to calculate the needed daily caloric intake, input their food and calories in a food log, and also keep track of their food and calories. 
+
+
 Main Features:
 
 * Calorie Tracker
@@ -14,6 +17,6 @@ Main Features:
   - Enables user to record and track their running/cycling activities.
   - User can set their monthly goals and track their progress.
 
-To-do List:
-1) identify the remaining main features of the app
-2) begin development of the features soon
+* Step Tracker
+  - Enables user to record and track their walking steps 
+
