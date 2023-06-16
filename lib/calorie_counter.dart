@@ -30,7 +30,7 @@ class _CalorieCounterState extends State<CalorieCounter> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Calorie Counter"),
+        title: const Text("Calorie Counter"),
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -41,7 +41,7 @@ class _CalorieCounterState extends State<CalorieCounter> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextFormField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Name",
                     prefixIcon: Icon(Icons.person),
                   ),
@@ -57,9 +57,9 @@ class _CalorieCounterState extends State<CalorieCounter> {
                     name = value!;
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 TextFormField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Age",
                     prefixIcon: Icon(Icons.calendar_today),
                   ),
@@ -80,9 +80,9 @@ class _CalorieCounterState extends State<CalorieCounter> {
                     age = int.parse(value!);
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 TextFormField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Height (in cm)",
                     prefixIcon: Icon(Icons.height),
                   ),
@@ -106,7 +106,7 @@ class _CalorieCounterState extends State<CalorieCounter> {
                 ),
                 SizedBox(height: 16),
                 TextFormField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Weight (in kg)",
                     prefixIcon: Icon(Icons.monitor_weight),
                   ),
@@ -128,13 +128,13 @@ class _CalorieCounterState extends State<CalorieCounter> {
                     weight = double.parse(value!);
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 DropdownButtonFormField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Dietary Goal',
                     prefixIcon: Icon(Icons.fitness_center),
                   ),
-                  items: [
+                  items: const [
                     DropdownMenuItem(
                       value: "Lose Weight",
                       child: Text("Lose Weight"),
@@ -161,7 +161,7 @@ class _CalorieCounterState extends State<CalorieCounter> {
                     goal = value!;
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
                     //validate the form
@@ -204,7 +204,7 @@ class _CalorieCounterState extends State<CalorieCounter> {
                       Navigator.of(context).pushNamed(MainMenu.routeName);
                     }
                   },
-                  child: Text("Calculate"),
+                  child: const Text("Calculate"),
                 ),
               ],
             ),
