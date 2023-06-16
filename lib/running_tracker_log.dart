@@ -15,6 +15,8 @@ class RunningTrackerLog extends StatefulWidget {
 class _RunningTrackerLogState extends State<RunningTrackerLog> {
   List<RunningActivity> _activities = [];
   RunningGoal? currentGoal;
+  double totalDistance = 0.0;
+  double? distanceToGoal;
 
   @override
   void initState() {
@@ -24,45 +26,72 @@ class _RunningTrackerLogState extends State<RunningTrackerLog> {
   }
 
   Future<void> _loadActivities() async {
-    final dbHelper = UserDatabase.instance;
-    final activities = await dbHelper.getActivities();
+    final db = UserDatabase.instance;
+    final activities = await db.getActivities();
+
+    double distanceSum = 0.0;
+    for (var activity in activities) {
+      distanceSum += activity.distance;
+    }
 
     setState(() {
       _activities = activities;
+      totalDistance = distanceSum;
+      if (currentGoal != null) {
+        distanceToGoal = currentGoal!.distance - totalDistance;
+      }
     });
   }
 
   Future<void> _deleteActivity(RunningActivity activity) async {
-    final dbHelper = UserDatabase.instance;
-    await dbHelper.deleteActivity(activity.id!);
+    final db = UserDatabase.instance;
+    await db.deleteActivity(activity.id!);
     setState(() {
-      _activities.remove(activity);
+      _activities.removeWhere((a) => a.id == activity.id);
+      totalDistance -= activity.distance;
+      if (currentGoal != null) {
+        distanceToGoal = currentGoal!.distance - totalDistance;
+      }
     });
   }
 
   Future<void> _getCurrentGoal() async {
-    final dbHelper = UserDatabase.instance;
-    final goal = await dbHelper.getCurrentGoal();
+    final db = UserDatabase.instance;
+    final goal = await db.getCurrentGoal();
 
     setState(() {
       currentGoal = goal;
+      if (currentGoal != null) {
+        distanceToGoal = currentGoal!.distance - totalDistance;
+      }
     });
   }
 
-  void _setGoal(RunningGoal goal) {
+  Future<void> _setGoal(RunningGoal goal) async {
+    final db = UserDatabase.instance;
+    await db.updateGoal(goal);
+
     setState(() {
       currentGoal = goal;
+      if (currentGoal != null) {
+        distanceToGoal = currentGoal!.distance - totalDistance;
+      }
     });
+
+    // print(goal.distance);
+    _loadActivities();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Activity Log'),
+        title: const Text('Activity Log'),
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
             onPressed: () {
               showDialog(
                 context: context,
@@ -76,13 +105,18 @@ class _RunningTrackerLogState extends State<RunningTrackerLog> {
       ),
       body: Column(
         children: [
-          SizedBox(height: 16.0),
+          const SizedBox(height: 16.0),
           if (currentGoal != null)
             Text(
-              'Goal: ${currentGoal!.distance!} km',
-              style: TextStyle(fontSize: 16.0),
+              'Goal: ${currentGoal!.distance} km',
+              style: const TextStyle(fontSize: 16.0),
             ),
-          SizedBox(height: 16.0),
+          const SizedBox(height: 16.0),
+          Text(
+            'Distance to Goal: ${distanceToGoal?.toStringAsFixed(2)} km',
+            style: const TextStyle(fontSize: 16.0),
+          ),
+          const SizedBox(height: 16.0),
           Expanded(
             child: ListView.builder(
               itemCount: _activities.length,
@@ -93,8 +127,8 @@ class _RunningTrackerLogState extends State<RunningTrackerLog> {
                   background: Container(
                     color: Colors.red,
                     alignment: Alignment.centerRight,
-                    padding: EdgeInsets.only(right: 16.0),
-                    child: Icon(
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: const Icon(
                       Icons.delete,
                       color: Colors.white,
                     ),

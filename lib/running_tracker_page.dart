@@ -122,8 +122,8 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
     } else {
       final activity =
       RunningActivity(distance: distance, duration: _elapsedTime.inSeconds);
-      final dbHelper = UserDatabase.instance;
-      await dbHelper.insertActivity(activity);
+      final db = UserDatabase.instance;
+      await db.insertActivity(activity);
       Navigator.of(context).pushNamed(RunningTrackerLog.routeName);
     }
 

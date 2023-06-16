@@ -337,6 +337,7 @@ class UserDatabase{
     db.close();
   }
 
+  // Activities Table Methods
 
   Future<List<RunningActivity>> getActivities() async {
     final db = await database;
@@ -364,6 +365,8 @@ class UserDatabase{
     );
   }
 
+  // Goals Table Methods
+
   Future<List<RunningGoal>> getGoals() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(tableGoals);
@@ -373,11 +376,6 @@ class UserDatabase{
         distance: maps[index][columnDistance],
       );
     });
-  }
-
-  Future<void> insertGoal(RunningGoal goal) async {
-    final db = await database;
-    await db.insert(tableGoals, goal.toMap());
   }
 
   Future<RunningGoal?> getCurrentGoal() async {
@@ -391,12 +389,20 @@ class UserDatabase{
 
   Future<void> updateGoal(RunningGoal goal) async {
     final db = await database;
-    await db.update(
-      tableGoals,
-      goal.toMap(),
-      where: '$columnId = ?',
-      whereArgs: [goal.id],
-    );
+    final goals = await db.query(tableGoals);
+
+    if (goals.isNotEmpty) {
+      // If there are existing goals, update the last goal
+      await db.update(
+        tableGoals,
+        goal.toMap(),
+        where: '$columnId = ?',
+        whereArgs: [goals.last[columnId]],
+      );
+    } else {
+      // If there are no existing goals, insert a new goal
+      await db.insert(tableGoals, goal.toMap());
+    }
   }
 
 }
