@@ -1,73 +1,167 @@
 import 'package:fitness_tracker_app/model/running_activity_model.dart';
+import 'package:fitness_tracker_app/set_goal_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:fitness_tracker_app/db/running_tracker_database.dart';
+import 'package:fitness_tracker_app/db/user_database.dart';
+
+import 'model/running_goal_model.dart';
 
 class RunningTrackerLog extends StatefulWidget {
   static String routeName = '/runningTrackerLog';
+
+  const RunningTrackerLog({super.key});
+
   @override
   _RunningTrackerLogState createState() => _RunningTrackerLogState();
 }
 
 class _RunningTrackerLogState extends State<RunningTrackerLog> {
   List<RunningActivity> _activities = [];
+  RunningGoal? currentGoal;
+  double totalDistance = 0.0;
+  double? distanceToGoal;
 
   @override
   void initState() {
     super.initState();
     _loadActivities();
+    _getCurrentGoal();
   }
 
   Future<void> _loadActivities() async {
-    final dbHelper = DatabaseHelper();
-    final activities = await dbHelper.getActivities();
+    final db = UserDatabase.instance;
+    final activities = await db.getActivities();
+
+    double distanceSum = 0.0;
+    for (var activity in activities) {
+      distanceSum += activity.distance;
+    }
 
     setState(() {
       _activities = activities;
+      totalDistance = distanceSum;
+      if (currentGoal != null) {
+        distanceToGoal = currentGoal!.distance - totalDistance;
+      }
     });
   }
 
   Future<void> _deleteActivity(RunningActivity activity) async {
-    final dbHelper = DatabaseHelper();
-    await dbHelper.deleteActivity(activity.id!); // Call deleteActivity with the activity's ID
+    final db = UserDatabase.instance;
+    await db.deleteActivity(activity.id!);
     setState(() {
-      _activities.remove(activity);
+      _activities.removeWhere((a) => a.id == activity.id);
+      totalDistance -= activity.distance;
+      if (currentGoal != null) {
+        distanceToGoal = currentGoal!.distance - totalDistance;
+      }
     });
   }
+
+  Future<void> _getCurrentGoal() async {
+    final db = UserDatabase.instance;
+    final goal = await db.getCurrentGoal();
+
+    setState(() {
+      currentGoal = goal;
+      if (currentGoal != null) {
+        distanceToGoal = currentGoal!.distance - totalDistance;
+      }
+    });
+  }
+
+  Future<void> _setGoal(RunningGoal goal) async {
+    final db = UserDatabase.instance;
+    await db.updateGoal(goal);
+
+    setState(() {
+      currentGoal = goal;
+      if (currentGoal != null) {
+        distanceToGoal = currentGoal!.distance - totalDistance;
+      }
+    });
+
+    // print(goal.distance);
+    _loadActivities();
+  }
+
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Activity Log'),
-      ),
-      body: ListView.builder(
-        itemCount: _activities.length,
-        itemBuilder: (context, index) {
-          final activity = _activities[index];
-          return Dismissible(
-            key: UniqueKey(), // Use UniqueKey for each Dismissible widget
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: EdgeInsets.only(right: 16.0),
-              child: Icon(
-                Icons.delete,
-                color: Colors.white,
-              ),
-            ),
-            direction: DismissDirection.endToStart,
-            onDismissed: (direction) {
-              _deleteActivity(activity); // Remove the activity from the list
+        title: const Text('Activity Log'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return SetGoalWidget(onGoalSet: _setGoal);
+                },
+              );
             },
-            child: Card(
-              child: ListTile(
-                title: Text('Distance: ${activity.distance.toStringAsFixed(2)} km'),
-                subtitle: Text('Duration: ${activity.duration} seconds'),
-              ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 8.0),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF154c79),
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8.0),
             ),
-          );
-        },
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                if (currentGoal != null)
+                  Text(
+                    'Goal: ${currentGoal!.distance} km',
+                    style: const TextStyle(fontSize: 16.0, color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                const SizedBox(height: 16.0),
+                Text(
+                  'Distance to Goal: ${distanceToGoal?.toStringAsFixed(2)} km',
+                  style: const TextStyle(fontSize: 16.0, color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _activities.length,
+              itemBuilder: (context, index) {
+                final activity = _activities[index];
+                return Dismissible(
+                  key: ValueKey(activity.id),
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: const Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                    ),
+                  ),
+                  direction: DismissDirection.endToStart,
+                  onDismissed: (direction) {
+                    _deleteActivity(activity);
+                  },
+                  child: Card(
+                    child: ListTile(
+                      title: Text('Distance: ${activity.distance.toStringAsFixed(2)} km'),
+                      subtitle: Text('Duration: ${activity.duration} seconds'),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

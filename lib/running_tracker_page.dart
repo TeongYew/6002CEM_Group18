@@ -1,5 +1,5 @@
 import 'package:fitness_tracker_app/running_tracker_log.dart';
-import 'package:fitness_tracker_app/db/running_tracker_database.dart';
+import 'package:fitness_tracker_app/db/user_database.dart';
 import 'package:fitness_tracker_app/model/running_activity_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -9,6 +9,8 @@ import 'dart:async';
 
 class RunningTrackerPage extends StatefulWidget {
   static String routeName = '/runningTracker';
+
+  const RunningTrackerPage({super.key});
   @override
   _RunningTrackerPageState createState() => _RunningTrackerPageState();
 }
@@ -20,13 +22,13 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
   bool _isRunning = false;
 
   LocationData? _currentLocation;
-  Location _location = Location();
-  MapController _mapController = MapController();
+  final Location _location = Location();
+  final MapController _mapController = MapController();
 
   late LocationData _previousLocation;
   double _totalDistance = 0.0;
 
-  List<LatLng> _trailCoordinates = [];
+  final List<LatLng> _trailCoordinates = [];
 
   @override
   void initState() {
@@ -40,14 +42,6 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
     var locationPermission = await _location.requestPermission();
     if (locationPermission != PermissionStatus.granted) {
       // Handle location permission denied
-    }
-  }
-
-  void _getCurrentLocation() async {
-    try {
-      _currentLocation = await _location.getLocation();
-    } catch (e) {
-      // Handle location error
     }
   }
 
@@ -82,8 +76,8 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
     double distanceInMeters = Distance().as(
       LengthUnit.Meter,
       LatLng(
-        _previousLocation!.latitude!,
-        _previousLocation!.longitude!,
+        _previousLocation.latitude!,
+        _previousLocation.longitude!,
       ),
       LatLng(
         _currentLocation!.latitude!,
@@ -96,7 +90,7 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
 
   void _startTimer() {
     _stopwatch.start();
-    _timer = Timer.periodic(Duration(milliseconds: 100), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       setState(() {
         _elapsedTime = _stopwatch.elapsed;
       });
@@ -117,9 +111,15 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
     _totalDistance = 0.0; // Reset total distance
     _trailCoordinates.clear(); // Reset trail coordinates
 
-    final activity = RunningActivity(distance: distance, duration: _elapsedTime.inSeconds);
-    final dbHelper = DatabaseHelper();
-    await dbHelper.insertActivity(activity);
+    if (_totalDistance == 0.0 && _elapsedTime == Duration.zero) {
+      // Do nothing
+    } else {
+      final activity =
+      RunningActivity(distance: distance, duration: _elapsedTime.inSeconds);
+      final db = UserDatabase.instance;
+      await db.insertActivity(activity);
+      Navigator.of(context).pushNamed(RunningTrackerLog.routeName);
+    }
 
     setState(() {
       _currentLocation = null;
@@ -127,6 +127,7 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
 
     _elapsedTime = Duration.zero; // Reset elapsed time
   }
+
 
 
 
@@ -163,15 +164,13 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
         '${_elapsedTime.inMinutes.remainder(60).toString().padLeft(2, '0')}:'
         '${_elapsedTime.inSeconds.remainder(60).toString().padLeft(2, '0')}';
 
-    Color _playButtonColor = Colors.black;
-    Color _pauseButtonColor = Colors.black;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Running Tracker'),
+        title: const Text('Running Tracker'),
         actions: [
           IconButton(
-            icon: Icon(Icons.history),
+            icon: const Icon(Icons.history),
             onPressed: (){
               Navigator.of(context).pushNamed(RunningTrackerLog.routeName);
             }
@@ -215,11 +214,9 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
                           _currentLocation!.longitude!,
                         )
                             : LatLng(0, 0),
-                        builder: (ctx) => Container(
-                          child: Icon(
-                            Icons.location_on,
-                            color: Colors.red,
-                          ),
+                        builder: (ctx) => const Icon(
+                          Icons.location_on,
+                          color: Colors.red,
                         ),
                       ),
                     ]
@@ -230,18 +227,18 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
             ),
             Card(
               child: Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Total Distance',
                       style: TextStyle(fontSize: 24),
                     ),
                     Text(
                       "${_totalDistance.toStringAsFixed(2)}km",
                       style:
-                      TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+                      const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -271,19 +268,19 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 IconButton(
-                  icon: Icon(Icons.play_arrow),
+                  icon: const Icon(Icons.play_arrow),
                   onPressed: _isRunning ? null : _startTracking,
                   iconSize: 48,
                   color: Colors.green,
                 ),
                 IconButton(
-                  icon: Icon(Icons.pause),
+                  icon: const Icon(Icons.pause),
                   onPressed: _isRunning ? _stopTracking : null,
                   iconSize: 48,
                   color: Colors.red,
                 ),
                 IconButton(
-                  icon: Icon(Icons.stop),
+                  icon: const Icon(Icons.stop),
                   onPressed: _stopActivity,
                   iconSize: 48,
                 ),
