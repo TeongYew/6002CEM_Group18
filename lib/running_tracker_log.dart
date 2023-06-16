@@ -8,6 +8,8 @@ import 'model/running_goal_model.dart';
 class RunningTrackerLog extends StatefulWidget {
   static String routeName = '/runningTrackerLog';
 
+  const RunningTrackerLog({super.key});
+
   @override
   _RunningTrackerLogState createState() => _RunningTrackerLogState();
 }
@@ -105,18 +107,30 @@ class _RunningTrackerLogState extends State<RunningTrackerLog> {
       ),
       body: Column(
         children: [
-          const SizedBox(height: 16.0),
-          if (currentGoal != null)
-            Text(
-              'Goal: ${currentGoal!.distance} km',
-              style: const TextStyle(fontSize: 16.0),
+          const SizedBox(height: 8.0),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF154c79),
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8.0),
             ),
-          const SizedBox(height: 16.0),
-          Text(
-            'Distance to Goal: ${distanceToGoal?.toStringAsFixed(2)} km',
-            style: const TextStyle(fontSize: 16.0),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                if (currentGoal != null)
+                  Text(
+                    'Goal: ${currentGoal!.distance} km',
+                    style: const TextStyle(fontSize: 16.0, color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                const SizedBox(height: 16.0),
+                Text(
+                  'Distance to Goal: ${distanceToGoal?.toStringAsFixed(2)} km',
+                  style: const TextStyle(fontSize: 16.0, color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 8.0),
           Expanded(
             child: ListView.builder(
               itemCount: _activities.length,
