@@ -1,3 +1,4 @@
+final String tableActivities = 'activities';
 
 class RunningActivity {
   int? id;
