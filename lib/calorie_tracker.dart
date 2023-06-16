@@ -144,83 +144,83 @@ class _CalorieTrackerState extends State<CalorieTracker> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text('Calorie Tracker'),
+        title: const Text('Calorie Tracker'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
+            const Text(
               'Target Calories',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               '$targetCalories',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.blue,
               ),
             ),
-            SizedBox(height: 24),
-            Text(
+            const SizedBox(height: 24),
+            const Text(
               'Consumed Calories',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               '$consumedCalories',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.red,
               ),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             TextField(
               controller: foodController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Food',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.restaurant),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: caloriesController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Calories',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.calculate),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: addFoodLog,
-              child: Text('Add'),
               style: ElevatedButton.styleFrom(
                 primary: Colors.green,
                 onPrimary: Colors.white,
               ),
+              child: const Text('Add'),
             ),
-            SizedBox(height: 24),
-            Text(
+            const SizedBox(height: 24),
+            const Text(
               'Food Log',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
                 itemCount: foodLogs.length,
@@ -228,8 +228,8 @@ class _CalorieTrackerState extends State<CalorieTracker> {
                   final log = foodLogs[index];
                   return ListTile(
                     title: Text(
-                      '${log.foodName}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      log.foodName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
                       '${log.calories} calories • ${log.date}, ${log.time}',
@@ -266,7 +266,7 @@ class _CalorieTrackerState extends State<CalorieTracker> {
             ),
           );
         },
-        child: Icon(Icons.redo),
+        child: const Icon(Icons.redo),
       ),
     );
   }
