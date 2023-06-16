@@ -46,7 +46,9 @@ dependencies:
   google_fonts:
   percent_indicator: ^4.2.3
   fl_chart: ^0.62.0
-  scaffold_gradient_background:
+  pedometer: ^3.0.0
+  permission_handler: ^10.3.0
+
 
 dev_dependencies:
   flutter_test:

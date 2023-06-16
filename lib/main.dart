@@ -1,7 +1,6 @@
 import 'package:fitness_tracker_app/calorie_counter.dart';
 import 'package:fitness_tracker_app/calorie_tracker.dart';
 import 'package:fitness_tracker_app/main_menu.dart';
-import 'package:fitness_tracker_app/model/login_page.dart';
 import 'package:fitness_tracker_app/model/step_counter.dart';
 import 'package:fitness_tracker_app/settings.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +20,6 @@ class FitnessApp extends StatelessWidget {
         CalorieCounter.routeName: (context) => CalorieCounter(),
         Settings.routeName: (context) => Settings(),
         StepCounterPage.routeName:(context)=> StepCounterPage(),
-        LoginPage.routeName:(context)=> LoginPage(),
       },
       debugShowCheckedModeBanner: false,
       title: "Fitness Tracker App",
