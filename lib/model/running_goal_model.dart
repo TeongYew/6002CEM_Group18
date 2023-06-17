@@ -1,4 +1,4 @@
-final String tableGoals = 'goals';
+const String tableGoals = 'goals';
 
 class RunningGoal {
   final int? id;

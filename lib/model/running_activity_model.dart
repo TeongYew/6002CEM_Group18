@@ -1,4 +1,4 @@
-final String tableActivities = 'activities';
+const String tableActivities = 'activities';
 
 class RunningActivity {
   int? id;

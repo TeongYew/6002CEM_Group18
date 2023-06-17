@@ -382,7 +382,7 @@ class UserDatabase{
     final db = await database;
     final goals = await db.query('goals', orderBy: 'id DESC', limit: 1);
     if (goals.isNotEmpty) {
-      return RunningGoal.fromMap(goals.first);
+      return RunningGoal.fromMap(goals.last);
     }
     return null;
   }
