@@ -5,6 +5,7 @@ import 'package:fitness_tracker_app/model/food_log.dart';
 import 'package:fitness_tracker_app/model/user.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer';
+import 'package:cron/cron.dart';
 
 class CalorieTracker extends StatefulWidget {
   static String routeName = '/calorieTracker';
@@ -26,37 +27,50 @@ class _CalorieTrackerState extends State<CalorieTracker> {
   @override
   void initState() {
     super.initState();
-    _fetchFoodLogsToday();
-    _fetchUser();
+
+    //get the food logs today and the user information
+    fetchFoodLogsToday();
+    fetchUser();
   }
 
-  void _fetchFoodLogsToday() async {
+  void fetchFoodLogsToday() async {
+    //get the current date time and change it into a string
     DateTime dateTime = DateTime.now();
     String day = dateTime.day.toString();
     String month = dateTime.month.toString();
     String year = dateTime.year.toString();
     String dateStr = "$day/$month/$year";
 
+    //get the list of food logs from the db
     final List<Food> logs = await UserDatabase.instance.readFoodUsingDate(dateStr);
+
+    //refresh the page
     setState(() {
       foodLogs = logs;
     });
+
     print('foodLogs: ${foodLogs.length}');
   }
 
-  void _fetchUser() async {
+  void fetchUser() async {
+    //get the user information
     final User tempUser = await UserDatabase.instance.getUser();
+
+    //refresh the page
     setState(() {
+      //use the user data that was fetched from the db and set the target and consumed calories
       user = tempUser;
       targetCalories = user.targetCalories;
       consumedCalories = user.currentCalories;
     });
   }
 
-  void _addFoodLog() async {
+  void addFoodLog() async {
+    //get the food name and calories
     final String foodName = foodController.text;
     final int calories = int.parse(caloriesController.text);
 
+    //get the current date time and change the date and time to string
     DateTime dateTime = DateTime.now();
     String day = dateTime.day.toString();
     String month = dateTime.month.toString();
@@ -66,6 +80,7 @@ class _CalorieTrackerState extends State<CalorieTracker> {
     String dateStr = "$day/$month/$year";
     String timeStr = "$hour:$minute";
 
+    //create a new food
     Food newFood = Food(
       foodName: foodName,
       calories: calories,
@@ -73,40 +88,55 @@ class _CalorieTrackerState extends State<CalorieTracker> {
       time: timeStr,
     );
 
+    //add a new food
     await UserDatabase.instance.createFood(newFood);
+
+    //calculate the total consumed calories of the user
     int currentCalories = user.currentCalories;
     int totalCalories = currentCalories + calories;
+
+    //update the user's current consumed calories
     await UserDatabase.instance.updateUserCurrentCalories(user, totalCalories);
 
+    //refresh the page
     setState(() {
+      //clear food and calorie text field
+      //add the newly added calories into the local consumed calories variable
       consumedCalories += calories;
       foodController.clear();
       caloriesController.clear();
     });
 
-    _fetchUser();
-    _fetchFoodLogsToday();
+    //get the user information and the food logs today
+    fetchUser();
+    fetchFoodLogsToday();
   }
 
   void resetConsumedCaloriesAndFoodToday() async {
+    //get the current date time and change it into a string
     DateTime dateTime = DateTime.now();
     String day = dateTime.day.toString();
     String month = dateTime.month.toString();
     String year = dateTime.year.toString();
     String dateStr = "$day/$month/$year";
 
+    //delete all the food logs today and update the user's current consumed calories to 0
     await UserDatabase.instance.deleteAllFoodToday(dateStr);
     await UserDatabase.instance.updateUserCurrentCalories(user, 0);
 
+    //refresh the page
     setState(() {
+      //clear the food and calories text field
+      //clear the local food logs variable and set the local current consumed calories variable to 0
       consumedCalories = 0;
       foodController.clear();
       caloriesController.clear();
       foodLogs.clear();
     });
 
-    _fetchUser();
-    _fetchFoodLogsToday();
+    //get the user information and the food log for today
+    fetchUser();
+    fetchFoodLogsToday();
   }
 
   @override
@@ -114,77 +144,83 @@ class _CalorieTrackerState extends State<CalorieTracker> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text('Calorie Tracker'),
+        title: const Text('Calorie Tracker'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
+            const Text(
               'Target Calories',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               '$targetCalories',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.blue,
               ),
             ),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 24),
+            const Text(
               'Consumed Calories',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               '$consumedCalories',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.red,
               ),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             TextField(
               controller: foodController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Food',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.restaurant),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: caloriesController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Calories',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.calculate),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _addFoodLog,
-              child: Text('Add'),
+              onPressed: addFoodLog,
+              style: ElevatedButton.styleFrom(
+                primary: Colors.green,
+                onPrimary: Colors.white,
+              ),
+              child: const Text('Add'),
             ),
-            SizedBox(height: 24),
-            Text(
+            const SizedBox(height: 24),
+            const Text(
               'Food Log',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
                 itemCount: foodLogs.length,
@@ -192,11 +228,11 @@ class _CalorieTrackerState extends State<CalorieTracker> {
                   final log = foodLogs[index];
                   return ListTile(
                     title: Text(
-                      '${log.date} ${log.time}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      log.foodName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
-                      '${log.foodName}, ${log.calories} calories',
+                      '${log.calories} calories • ${log.date}, ${log.time}',
                       style: TextStyle(color: Colors.grey[700]),
                     ),
                   );
@@ -208,6 +244,7 @@ class _CalorieTrackerState extends State<CalorieTracker> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          //create an Alertdialog to confirm the reset
           showDialog<String>(
             context: context,
             builder: (BuildContext context) => AlertDialog(
@@ -229,761 +266,9 @@ class _CalorieTrackerState extends State<CalorieTracker> {
             ),
           );
         },
-        child: Icon(Icons.redo),
+        child: const Icon(Icons.redo),
       ),
     );
   }
+
 }
-
-
-
-
-
-// import 'dart:math';
-//
-// import 'package:fitness_tracker_app/db/user_database.dart';
-// import 'package:fitness_tracker_app/model/food_log.dart';
-// import 'package:fitness_tracker_app/model/user.dart';
-// import 'package:flutter/material.dart';
-// import 'package:sqflite/sqflite.dart';
-// import 'package:path/path.dart';
-//
-// class CalorieTracker extends StatefulWidget {
-//   static String routeName = '/calorieTracker';
-//
-//   @override
-//   _CalorieTrackerState createState() => _CalorieTrackerState();
-// }
-//
-// class _CalorieTrackerState extends State<CalorieTracker> {
-//   int targetCalories = 0;
-//   int consumedCalories = 0;
-//
-//   TextEditingController foodController = TextEditingController();
-//   TextEditingController caloriesController = TextEditingController();
-//
-//   List<Food> foodLogs = [];
-//   late User user;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//
-//     _fetchFoodLogsToday();
-//     _fetchUser();
-//   }
-//
-//   void _fetchFoodLogs() async {
-//     final List<Food> logs = await UserDatabase.instance.readAllFood();
-//     setState(() {
-//       foodLogs = logs;
-//     });
-//   }
-//
-//   void _fetchFoodLogsToday() async {
-//     DateTime dateTime = DateTime.now();
-//     String day = dateTime.day.toString();
-//     String month = dateTime.month.toString();
-//     String year = dateTime.year.toString();
-//     String dateStr = "$day/$month/$year";
-//
-//     final List<Food> logs =
-//     await UserDatabase.instance.readFoodUsingDate(dateStr);
-//     setState(() {
-//       foodLogs = logs;
-//     });
-//   }
-//
-//   void _fetchUser() async {
-//     final User tempUser = await UserDatabase.instance.getUser();
-//     setState(() {
-//       user = tempUser;
-//       targetCalories = user.targetCalories;
-//       consumedCalories = user.currentCalories;
-//     });
-//   }
-//
-//   void _addFoodLog() async {
-//     final String foodName = foodController.text;
-//     final int calories = int.parse(caloriesController.text);
-//
-//     DateTime dateTime = DateTime.now();
-//     String day = dateTime.day.toString();
-//     String month = dateTime.month.toString();
-//     String year = dateTime.year.toString();
-//     String hour = dateTime.hour.toString();
-//     String minute = dateTime.minute.toString();
-//     String dateStr = "$day/$month/$year";
-//     String timeStr = "$hour:$minute";
-//
-//     Food newFood = Food(
-//         foodName: foodName, calories: calories, date: dateStr, time: timeStr);
-//
-//     await UserDatabase.instance.createFood(newFood);
-//
-//     int currentCalories = user.currentCalories;
-//     int totalCalories = currentCalories + calories;
-//
-//     await UserDatabase.instance.updateUserCurrentCalories(user, totalCalories);
-//
-//     setState(() {
-//       consumedCalories += calories;
-//       foodController.clear();
-//       caloriesController.clear();
-//     });
-//
-//     _fetchUser();
-//     _fetchFoodLogsToday();
-//   }
-//
-//   void resetConsumedCaloriesAndFoodToday() async {
-//     DateTime dateTime = DateTime.now();
-//     String day = dateTime.day.toString();
-//     String month = dateTime.month.toString();
-//     String year = dateTime.year.toString();
-//     String dateStr = "$day/$month/$year";
-//
-//     await UserDatabase.instance.deleteAllFoodToday(dateStr);
-//     await UserDatabase.instance.updateUserCurrentCalories(user, 0);
-//
-//     setState(() {
-//       consumedCalories = 0;
-//       foodController.clear();
-//       caloriesController.clear();
-//       foodLogs.clear();
-//     });
-//
-//     _fetchUser();
-//     _fetchFoodLogsToday();
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Calorie Tracker'),
-//       ),
-//       body: Column(
-//         children: [
-//           Container(
-//             padding: EdgeInsets.all(16),
-//             color: Colors.blueGrey[100],
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Text(
-//                   'Target Calories',
-//                   style: TextStyle(
-//                     fontSize: 16,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 SizedBox(height: 8),
-//                 Text(
-//                   '$targetCalories',
-//                   style: TextStyle(
-//                     fontSize: 24,
-//                     fontWeight: FontWeight.bold,
-//                     color: Colors.blue,
-//                   ),
-//                 ),
-//                 SizedBox(height: 16),
-//                 Text(
-//                   'Consumed Calories',
-//                   style: TextStyle(
-//                     fontSize: 16,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 SizedBox(height: 8),
-//                 Text(
-//                   '$consumedCalories',
-//                   style: TextStyle(
-//                     fontSize: 24,
-//                     fontWeight: FontWeight.bold,
-//                     color: Colors.red,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//           Expanded(
-//             child: ListView.builder(
-//               itemCount: foodLogs.length,
-//               itemBuilder: (context, index) {
-//                 final log = foodLogs[index];
-//                 return ListTile(
-//                   title: Text(
-//                     '${log.date} ${log.time}',
-//                     style: TextStyle(fontWeight: FontWeight.bold),
-//                   ),
-//                   subtitle: Text(
-//                     '${log.foodName}, ${log.calories} calories',
-//                     style: TextStyle(color: Colors.grey[700]),
-//                   ),
-//                 );
-//               },
-//             ),
-//           ),
-//           Container(
-//             padding: EdgeInsets.all(16),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.stretch,
-//               children: [
-//                 TextField(
-//                   controller: foodController,
-//                   decoration: InputDecoration(
-//                     labelText: 'Food',
-//                     border: OutlineInputBorder(),
-//                   ),
-//                 ),
-//                 SizedBox(height: 16),
-//                 TextField(
-//                   controller: caloriesController,
-//                   keyboardType: TextInputType.number,
-//                   decoration: InputDecoration(
-//                     labelText: 'Calories',
-//                     border: OutlineInputBorder(),
-//                   ),
-//                 ),
-//                 SizedBox(height: 16),
-//                 ElevatedButton(
-//                   onPressed: _addFoodLog,
-//                   child: Text('Add'),
-//                 ),
-//                 SizedBox(height: 16),
-//                 ElevatedButton(
-//                   onPressed: () {
-//                     showDialog<String>(
-//                       context: context,
-//                       builder: (BuildContext context) => AlertDialog(
-//                         title: const Text('Reset Food Logs'),
-//                         content: const Text(
-//                             'Are you sure you want to reset the food logs for today?'),
-//                         actions: <Widget>[
-//                           TextButton(
-//                             onPressed: () => Navigator.pop(context, 'Cancel'),
-//                             child: const Text('Cancel'),
-//                           ),
-//                           TextButton(
-//                             onPressed: () {
-//                               resetConsumedCaloriesAndFoodToday();
-//                               Navigator.pop(context, 'Yes');
-//                             },
-//                             child: const Text('Yes'),
-//                           ),
-//                         ],
-//                       ),
-//                     );
-//                   },
-//                   child: Text('Reset Food Logs'),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-
-
-
-
-
-
-
-
-
-// import 'dart:math';
-//
-// import 'package:fitness_tracker_app/db/user_database.dart';
-// import 'package:fitness_tracker_app/model/food_log.dart';
-// import 'package:fitness_tracker_app/model/user.dart';
-// import 'package:flutter/material.dart';
-// import 'package:sqflite/sqflite.dart';
-// import 'package:path/path.dart';
-//
-// class CalorieTracker extends StatefulWidget {
-//   static String routeName = '/calorieTracker';
-//   @override
-//   _CalorieTrackerState createState() => _CalorieTrackerState();
-// }
-//
-// class _CalorieTrackerState extends State<CalorieTracker> {
-//   int targetCalories = 0;
-//   int consumedCalories = 0;
-//
-//   TextEditingController foodController = TextEditingController();
-//   TextEditingController caloriesController = TextEditingController();
-//
-//   List<Food> foodLogs = [];
-//   late User user;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//
-//     _fetchFoodLogsToday();
-//     _fetchUser();
-//   }
-//
-//   void _fetchFoodLogs() async {
-//     final List<Food> logs = await UserDatabase.instance.readAllFood();
-//     setState(() {
-//       foodLogs = logs;
-//     });
-//   }
-//
-//   void _fetchFoodLogsToday() async {
-//     DateTime dateTime = DateTime.now();
-//     String day = dateTime.day.toString();
-//     String month = dateTime.month.toString();
-//     String year = dateTime.year.toString();
-//     String dateStr = "$day/$month/$year";
-//
-//     final List<Food> logs =
-//     await UserDatabase.instance.readFoodUsingDate(dateStr);
-//     setState(() {
-//       foodLogs = logs;
-//     });
-//   }
-//
-//   void _fetchUser() async {
-//     final User tempUser = await UserDatabase.instance.getUser();
-//     setState(() {
-//       user = tempUser;
-//       targetCalories = user.targetCalories;
-//       consumedCalories = user.currentCalories;
-//     });
-//   }
-//
-//   void _addFoodLog() async {
-//     final String foodName = foodController.text;
-//     final int calories = int.parse(caloriesController.text);
-//
-//     DateTime dateTime = DateTime.now();
-//     String day = dateTime.day.toString();
-//     String month = dateTime.month.toString();
-//     String year = dateTime.year.toString();
-//     String hour = dateTime.hour.toString();
-//     String minute = dateTime.minute.toString();
-//     String dateStr = "$day/$month/$year";
-//     String timeStr = "$hour:$minute";
-//
-//     Food newFood = Food(
-//         foodName: foodName, calories: calories, date: dateStr, time: timeStr);
-//
-//     await UserDatabase.instance.createFood(newFood);
-//
-//     int currentCalories = user.currentCalories;
-//     int totalCalories = currentCalories + calories;
-//
-//     await UserDatabase.instance.updateUserCurrentCalories(user, totalCalories);
-//
-//     setState(() {
-//       consumedCalories += calories;
-//       foodController.clear();
-//       caloriesController.clear();
-//     });
-//
-//     _fetchUser();
-//     _fetchFoodLogsToday();
-//   }
-//
-//   void resetConsumedCaloriesAndFoodToday() async {
-//     DateTime dateTime = DateTime.now();
-//     String day = dateTime.day.toString();
-//     String month = dateTime.month.toString();
-//     String year = dateTime.year.toString();
-//     String dateStr = "$day/$month/$year";
-//
-//     await UserDatabase.instance.deleteAllFoodToday(dateStr);
-//     await UserDatabase.instance.updateUserCurrentCalories(user, 0);
-//
-//     setState(() {
-//       consumedCalories = 0;
-//       foodController.clear();
-//       caloriesController.clear();
-//       foodLogs.clear();
-//     });
-//
-//     _fetchUser();
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Calorie Tracker'),
-//       ),
-//       body: Column(
-//         crossAxisAlignment: CrossAxisAlignment.stretch,
-//         children: [
-//           Container(
-//             padding: EdgeInsets.all(16),
-//             color: Colors.blueGrey[100],
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Text(
-//                   'Target Calories',
-//                   style: TextStyle(
-//                     fontSize: 16,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 SizedBox(height: 8),
-//                 Text(
-//                   '$targetCalories',
-//                   style: TextStyle(
-//                     fontSize: 24,
-//                     fontWeight: FontWeight.bold,
-//                     color: Colors.blue,
-//                   ),
-//                 ),
-//                 SizedBox(height: 16),
-//                 Text(
-//                   'Consumed Calories',
-//                   style: TextStyle(
-//                     fontSize: 16,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 SizedBox(height: 8),
-//                 Text(
-//                   '$consumedCalories',
-//                   style: TextStyle(
-//                     fontSize: 24,
-//                     fontWeight: FontWeight.bold,
-//                     color: Colors.red,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//           Expanded(
-//             child: ListView.builder(
-//               itemCount: foodLogs.length,
-//               itemBuilder: (context, index) {
-//                 final log = foodLogs[index];
-//                 return ListTile(
-//                   title: Text(
-//                     '${log.date} ${log.time}',
-//                     style: TextStyle(fontWeight: FontWeight.bold),
-//                   ),
-//                   subtitle: Text(
-//                     '${log.foodName}, ${log.calories} calories',
-//                     style: TextStyle(color: Colors.grey[700]),
-//                   ),
-//                 );
-//               },
-//             ),
-//           ),
-//           Padding(
-//             padding: EdgeInsets.all(16),
-//             child: Column(
-//               children: [
-//                 TextField(
-//                   controller: foodController,
-//                   decoration: InputDecoration(
-//                     labelText: 'Food',
-//                     border: OutlineInputBorder(),
-//                   ),
-//                 ),
-//                 SizedBox(height: 16),
-//                 TextField(
-//                   controller: caloriesController,
-//                   keyboardType: TextInputType.number,
-//                   decoration: InputDecoration(
-//                     labelText: 'Calories',
-//                     border: OutlineInputBorder(),
-//                   ),
-//                 ),
-//                 SizedBox(height: 16),
-//                 ElevatedButton(
-//                   onPressed: _addFoodLog,
-//                   child: Text('Add'),
-//                 ),
-//                 SizedBox(height: 16),
-//                 ElevatedButton(
-//                   onPressed: () {
-//                     showDialog<String>(
-//                       context: context,
-//                       builder: (BuildContext context) => AlertDialog(
-//                         title: const Text('Reset Food Logs'),
-//                         content: const Text('Are you sure you want to reset the food logs for today?'),
-//                         actions: <Widget>[
-//                           TextButton(
-//                             onPressed: () => Navigator.pop(context, 'Cancel'),
-//                             child: const Text('Cancel'),
-//                           ),
-//                           TextButton(
-//                             onPressed: () {
-//                               resetConsumedCaloriesAndFoodToday();
-//                               Navigator.pop(context, 'Yes');
-//                             },
-//                             child: const Text('Yes'),
-//                           ),
-//                         ],
-//                       ),
-//                     );
-//                   },
-//                   child: Text('Reset Food Logs'),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-//
-//
-//
-//
-//
-// // import 'dart:math';
-// //
-// // import 'package:fitness_tracker_app/db/user_database.dart';
-// // import 'package:fitness_tracker_app/model/food_log.dart';
-// // import 'package:fitness_tracker_app/model/user.dart';
-// // import 'package:flutter/material.dart';
-// // import 'package:sqflite/sqflite.dart';
-// // import 'package:path/path.dart';
-// //
-// // class CalorieTracker extends StatefulWidget {
-// //   static String routeName = '/calorieTracker';
-// //   @override
-// //   _CalorieTrackerState createState() => _CalorieTrackerState();
-// // }
-// //
-// // class _CalorieTrackerState extends State<CalorieTracker> {
-// //   int targetCalories = 0;
-// //   int consumedCalories = 0;
-// //
-// //   TextEditingController foodController = TextEditingController();
-// //   TextEditingController caloriesController = TextEditingController();
-// //
-// //   List<Food> foodLogs = [];
-// //   late User user;
-// //
-// //   @override
-// //   void initState() {
-// //     super.initState();
-// //
-// //     _fetchFoodLogsToday();
-// //     _fetchUser();
-// //   }
-// //
-// //   void _fetchFoodLogs() async {
-// //     final List<Food> logs = await UserDatabase.instance.readAllFood();
-// //     setState(() {
-// //       foodLogs = logs;
-// //     });
-// //   }
-// //
-// //   void _fetchFoodLogsToday() async {
-// //     DateTime dateTime = DateTime.now();
-// //     String day = dateTime.day.toString();
-// //     String month = dateTime.month.toString();
-// //     String year = dateTime.year.toString();
-// //     String dateStr = "$day/$month/$year";
-// //
-// //     final List<Food> logs =
-// //         await UserDatabase.instance.readFoodUsingDate(dateStr);
-// //     setState(() {
-// //       foodLogs = logs;
-// //     });
-// //   }
-// //
-// //   void _fetchUser() async {
-// //     final User tempUser = await UserDatabase.instance.getUser();
-// //     setState(() {
-// //       user = tempUser;
-// //       targetCalories = user.targetCalories;
-// //       consumedCalories = user.currentCalories;
-// //     });
-// //   }
-// //
-// //   void _addFoodLog() async {
-// //     final String foodName = foodController.text;
-// //     final int calories = int.parse(caloriesController.text);
-// //
-// //     DateTime dateTime = DateTime.now();
-// //     String day = dateTime.day.toString();
-// //     String month = dateTime.month.toString();
-// //     String year = dateTime.year.toString();
-// //     String hour = dateTime.hour.toString();
-// //     String minute = dateTime.minute.toString();
-// //     String dateStr = "$day/$month/$year";
-// //     String timeStr = "$hour:$minute";
-// //
-// //     Food newFood = Food(
-// //         foodName: foodName, calories: calories, date: dateStr, time: timeStr);
-// //
-// //     await UserDatabase.instance.createFood(newFood);
-// //     //await UserDatabase.instance.updateUserCurrentCalories(user, (user.currentCalories + calories));
-// //
-// //     // Retrieve the current consumedCalories value for the user
-// //     int currentCalories = user.currentCalories;
-// //
-// //     // Calculate the total calories of the newly added food
-// //     int totalCalories = currentCalories + calories;
-// //
-// //     // Update the consumedCalories column in the user data table with the updated value
-// //     await UserDatabase.instance.updateUserCurrentCalories(user, totalCalories);
-// //     //await updateConsumedCalories(totalCalories);
-// //
-// //     setState(() {
-// //       consumedCalories += calories;
-// //       foodController.clear();
-// //       caloriesController.clear();
-// //     });
-// //
-// //     _fetchUser();
-// //     _fetchFoodLogsToday();
-// //   }
-// //
-// //   // Future<void> addFood(String foodName, int calories) async {
-// //   //   // Add the food and calories to the food log table in SQLite
-// //   //
-// //   //   // Retrieve the current consumedCalories value for the user
-// //   //   int currentCalories = await retrieveConsumedCalories();
-// //   //
-// //   //   // Calculate the total calories of the newly added food
-// //   //   int totalCalories = currentCalories + calories;
-// //   //
-// //   //   // Update the consumedCalories column in the user data table with the updated value
-// //   //   await updateConsumedCalories(totalCalories);
-// //   // }
-// //
-// // // Function to retrieve the current consumedCalories value from the database
-// // //   Future<int> retrieveConsumedCalories() async {
-// // //     // Retrieve the current consumedCalories value from the database and return it
-// // //   }
-// //
-// // // Function to update the consumedCalories column in the user data table
-// //   void resetConsumedCaloriesAndFoodToday() async {
-// //     DateTime dateTime = DateTime.now();
-// //     String day = dateTime.day.toString();
-// //     String month = dateTime.month.toString();
-// //     String year = dateTime.year.toString();
-// //     String dateStr = "$day/$month/$year";
-// //
-// //     // Update the consumedCalories column in the user data table with the updated value
-// //     await UserDatabase.instance.deleteAllFoodToday(dateStr);
-// //
-// //     // Update the consumedCalories column in the user data table with the updated value
-// //     await UserDatabase.instance.updateUserCurrentCalories(user, 0);
-// //     //await updateConsumedCalories(totalCalories);
-// //
-// //     setState(() {
-// //       consumedCalories = 0;
-// //       foodController.clear();
-// //       caloriesController.clear();
-// //       foodLogs.clear();
-// //     });
-// //
-// //     _fetchUser();
-// //     //_fetchFoodLogsToday();
-// //   }
-// //
-// //   @override
-// //   Widget build(BuildContext context) {
-// //     return Scaffold(
-// //       appBar: AppBar(
-// //         title: Text('Calorie Tracker'),
-// //       ),
-// //       body: Column(
-// //         children: [
-// //           SizedBox(height: 20),
-// //           Text(
-// //             'Target Calories: $targetCalories',
-// //             style: TextStyle(fontSize: 18),
-// //           ),
-// //           SizedBox(height: 20),
-// //           Text(
-// //             'Consumed Calories: $consumedCalories',
-// //             style: TextStyle(fontSize: 18),
-// //           ),
-// //           SizedBox(height: 20),
-// //           Padding(
-// //             padding: EdgeInsets.symmetric(horizontal: 16),
-// //             child: Row(
-// //               children: [
-// //                 Expanded(
-// //                   child: TextField(
-// //                     controller: foodController,
-// //                     decoration: InputDecoration(labelText: 'Food'),
-// //                   ),
-// //                 ),
-// //                 SizedBox(width: 10),
-// //                 Expanded(
-// //                   child: TextField(
-// //                     controller: caloriesController,
-// //                     keyboardType: TextInputType.number,
-// //                     decoration: InputDecoration(labelText: 'Calories'),
-// //                   ),
-// //                 ),
-// //                 ElevatedButton(
-// //                   onPressed: _addFoodLog,
-// //                   child: Text('Add'),
-// //                 ),
-// //               ],
-// //             ),
-// //           ),
-// //           SizedBox(height: 20),
-// //           Text(
-// //             'Food Log',
-// //             style: TextStyle(fontSize: 18),
-// //           ),
-// //           Expanded(
-// //             child: ListView.builder(
-// //               itemCount: foodLogs.length,
-// //               itemBuilder: (context, index) {
-// //                 final log = foodLogs[index];
-// //                 return ListTile(
-// //                   title: Text('${log.date} ${log.time}'),
-// //                   subtitle: Text('${log.foodName}, ${log.calories} calories'),
-// //                 );
-// //               },
-// //             ),
-// //           ),
-// //         ],
-// //       ),
-// //       floatingActionButton: FloatingActionButton(
-// //           onPressed: () {
-// //             showDialog<String>(
-// //               context: context,
-// //               builder: (BuildContext context) => AlertDialog(
-// //                 title: const Text('Reset food logs for today'),
-// //                 content: const Text('Are you sure you want to reset the food logs for today?'),
-// //                 actions: <Widget>[
-// //                   TextButton(
-// //                     onPressed: () => Navigator.pop(context, 'Cancel'),
-// //                     child: const Text('Cancel'),
-// //                   ),
-// //                   TextButton(
-// //                     onPressed: () {
-// //                       resetConsumedCaloriesAndFoodToday();
-// //                       Navigator.pop(context, 'Yes');
-// //                     },
-// //                     child: const Text('Yes'),
-// //                   ),
-// //                 ],
-// //               ),
-// //             );
-// //           },
-// //           child: Icon(
-// //             Icons.redo,
-// //             color: Colors.white,
-// //             size: 29,
-// //           )),
-// //       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-// //     );
-// //   }
-// // }
-// //

@@ -3,6 +3,9 @@ import 'dart:developer';
 
 import 'package:fitness_tracker_app/model/food_log.dart';
 import 'package:fitness_tracker_app/model/user.dart';
+import 'package:fitness_tracker_app/model/running_activity_model.dart';
+import 'package:fitness_tracker_app/model/running_goal_model.dart';
+
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -14,6 +17,10 @@ class UserDatabase{
 
   //private constructor
   UserDatabase.init();
+
+  static const String columnId = 'id';
+  static const String columnDistance = 'distance';
+  static const String columnDuration = 'duration';
 
   Future<Database> get database async{
     //check if database already exists
@@ -66,6 +73,23 @@ class UserDatabase{
     ${FoodFields.time} $textType
     )
     ''');
+
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS $tableActivities (
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnDistance REAL,
+        $columnDuration INTEGER
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS $tableGoals (
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnDistance REAL
+      )
+    ''');
+
   }
 
   Future<User> createUser(User user) async{
@@ -312,6 +336,74 @@ class UserDatabase{
     final db = await instance.database;
     //close the database
     db.close();
+  }
+
+  // Activities Table Methods
+
+  Future<List<RunningActivity>> getActivities() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(tableActivities);
+    return List.generate(maps.length, (index) {
+      return RunningActivity(
+        id: maps[index][columnId],
+        distance: maps[index][columnDistance],
+        duration: maps[index][columnDuration],
+      );
+    });
+  }
+
+  Future<void> insertActivity(RunningActivity activity) async {
+    final db = await database;
+    await db.insert(tableActivities, activity.toMap());
+  }
+
+  Future<void> deleteActivity(int id) async {
+    final db = await database;
+    await db.delete(
+      tableActivities,
+      where: '$columnId = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // Goals Table Methods
+
+  Future<List<RunningGoal>> getGoals() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(tableGoals);
+    return List.generate(maps.length, (index) {
+      return RunningGoal(
+        id: maps[index][columnId],
+        distance: maps[index][columnDistance],
+      );
+    });
+  }
+
+  Future<RunningGoal?> getCurrentGoal() async {
+    final db = await database;
+    final goals = await db.query('goals', orderBy: 'id DESC', limit: 1);
+    if (goals.isNotEmpty) {
+      return RunningGoal.fromMap(goals.last);
+    }
+    return null;
+  }
+
+  Future<void> updateGoal(RunningGoal goal) async {
+    final db = await database;
+    final goals = await db.query(tableGoals);
+
+    if (goals.isNotEmpty) {
+      // If there are existing goals, update the last goal
+      await db.update(
+        tableGoals,
+        goal.toMap(),
+        where: '$columnId = ?',
+        whereArgs: [goals.last[columnId]],
+      );
+    } else {
+      // If there are no existing goals, insert a new goal
+      await db.insert(tableGoals, goal.toMap());
+    }
   }
 
 }

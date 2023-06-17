@@ -31,6 +31,19 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # uuid
+  uuid: ^3.0.4
+
+  # location
+  location: ^4.2.0
+
+  # flutter_svg
+  flutter_svg: ^1.0.0
+
+  #OpenStreetMap
+  flutter_map: ^0.13.0
+  latlong: ^0.6.1
+
   # database storage
   sqflite: ^2.0.0+3
 
@@ -48,6 +61,7 @@ dependencies:
   fl_chart: ^0.62.0
   pedometer: ^3.0.0
   permission_handler: ^10.3.0
+  cron: ^0.5.1
 
 
 dev_dependencies:
@@ -73,8 +87,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
+  assets:
+     - assets/background_image.jpg
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
