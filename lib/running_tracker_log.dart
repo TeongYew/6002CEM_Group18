@@ -1,5 +1,5 @@
 import 'package:fitness_tracker_app/model/running_activity_model.dart';
-import 'package:fitness_tracker_app/set_goal_widget.dart';
+import 'package:fitness_tracker_app/widgets/set_goal_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:fitness_tracker_app/db/user_database.dart';
 
