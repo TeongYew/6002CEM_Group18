@@ -1,5 +1,6 @@
 import 'package:fitness_tracker_app/bar%20graph/individual_bar.dart';
 
+
 class BarData{
   final double monAmount;
   final double tuesAmount;

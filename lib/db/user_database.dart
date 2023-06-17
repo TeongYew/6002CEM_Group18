@@ -67,6 +67,12 @@ class UserDatabase{
     )
     ''');
 
+    await db.execute('''
+    CREATE TABLE $table
+   
+    )
+    ''');
+
   }
 
   Future<User> createUser(User user) async{
