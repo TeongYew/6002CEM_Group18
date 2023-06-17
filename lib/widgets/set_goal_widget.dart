@@ -23,7 +23,7 @@ class _SetGoalWidgetState extends State<SetGoalWidget> {
         children: [
           TextFormField(
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Distance (km)',
             ),
             onChanged: (value) {

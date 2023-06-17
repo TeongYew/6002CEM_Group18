@@ -39,6 +39,7 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
   }
 
   void _checkPermission() async {
+    // checks device location permission
     var locationPermission = await _location.requestPermission();
     if (locationPermission != PermissionStatus.granted) {
       // Handle location permission denied
@@ -73,6 +74,7 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
   }
 
   void _updateDistance() {
+    // calculate the distance based on the coordinates
     double distanceInMeters = Distance().as(
       LengthUnit.Meter,
       LatLng(
@@ -84,6 +86,7 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
         _currentLocation!.longitude!,
       ),
     );
+
     _totalDistance += distanceInMeters / 1000; // Convert to kilometers
     _previousLocation = _currentLocation!;
   }
@@ -104,9 +107,9 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
 
   void _stopActivity() async {
     _timer.cancel();
-    _stopwatch.stop();
-    _elapsedTime = _stopwatch.elapsed;
-    _stopwatch.reset();
+    _stopwatch.stop(); // stop stopwatch
+    _elapsedTime = _stopwatch.elapsed; // Store the current elapsed time
+    _stopwatch.reset(); // reset stopwatch
     final double distance = _totalDistance; // Store the current total distance
     _totalDistance = 0.0; // Reset total distance
     _trailCoordinates.clear(); // Reset trail coordinates
@@ -114,13 +117,17 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
     if (_totalDistance == 0.0 && _elapsedTime == Duration.zero) {
       // Do nothing
     } else {
+      // Create new RunningActivity object
       final activity =
       RunningActivity(distance: distance, duration: _elapsedTime.inSeconds);
+      // Call the db and insert activity into the db
       final db = UserDatabase.instance;
       await db.insertActivity(activity);
+      // Navigate to Running Tracker Log page
       Navigator.of(context).pushNamed(RunningTrackerLog.routeName);
     }
 
+    // reset current location
     setState(() {
       _currentLocation = null;
     });
@@ -128,24 +135,23 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
     _elapsedTime = Duration.zero; // Reset elapsed time
   }
 
-
-
-
-
-
   void _startTracking() {
+    // set isRunning to true
     _isRunning = true;
+    // clears the trail coordinates list
     _trailCoordinates.clear();
     _previousLocation = _currentLocation!; // Reset previous location
     _startTimer();
     _updateDistance(); // Update distance when tracking starts
   }
   void _stopTracking() {
+    // set isRunning to false
     _isRunning = false;
-    _stopTimer();
+    _stopTimer(); // stops the timer
   }
 
   void _updateTrail(LatLng newLocation) {
+    // adds the new location coordinates to the list
     setState(() {
       _trailCoordinates.add(newLocation);
     });
@@ -269,12 +275,14 @@ class _RunningTrackerPageState extends State<RunningTrackerPage> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.play_arrow),
+                  // if isRunning is true then the button will be disabled, else start tracking
                   onPressed: _isRunning ? null : _startTracking,
                   iconSize: 48,
                   color: Colors.green,
                 ),
                 IconButton(
                   icon: const Icon(Icons.pause),
+                  // if isRunning is true then stop tracking, else the button will be disabled
                   onPressed: _isRunning ? _stopTracking : null,
                   iconSize: 48,
                   color: Colors.red,
