@@ -66,13 +66,6 @@ class UserDatabase{
     ${FoodFields.time} $textType
     )
     ''');
-
-    await db.execute('''
-    CREATE TABLE $table
-   
-    )
-    ''');
-
   }
 
   Future<User> createUser(User user) async{
