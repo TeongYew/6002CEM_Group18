@@ -31,21 +31,21 @@ class _StepCounterPageState extends State<StepCounterPage> {
   void initState() {
     super.initState();
     fetchUser();
+    //resetStepCount();
     initStepCounter();
+    insertSteps();
     cron.schedule(Schedule.parse('59 23 * * * '), () async {
       insertSteps();
     });
+
   }
 
   void insertSteps() async {
     final formattedDate = "${now.day}-${now.month}-${now.year}";
     await UserDatabase.instance.addStepsToDatabase(
         _steps,
-        (((((double.parse(_steps) * height * strideConst) / 100)) / 1.4 / 60) *
-                4)
-            .toStringAsFixed(2),
-        ((double.parse(_steps) * height * strideConst) / 100)
-            .toStringAsFixed(0),
+        (((((double.parse(_steps) * height * strideConst) / 100)) / 1.4 / 60) * 4).toStringAsFixed(2),
+        ((double.parse(_steps) * height * strideConst) / 100).toStringAsFixed(0),
         formattedDate);
     print("Data inserted successfully");
   }
@@ -70,6 +70,12 @@ class _StepCounterPageState extends State<StepCounterPage> {
       _stepCountStream.listen(onStepCount).onError(onStepCountError);
     } else {}
     if (!mounted) return;
+  }
+
+  void resetStepCount(){
+    setState(() {
+      _steps = '0';
+    });
   }
 
   void fetchUser() async {

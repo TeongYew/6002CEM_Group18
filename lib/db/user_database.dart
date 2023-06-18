@@ -93,13 +93,13 @@ class UserDatabase {
     ''');
 
     await db.execute('''
-    CREATE TABLE $tableSteps(
-    $columnId INTEGER PRIMARY KEY.
-    $columnSteps TEXT,
-    $columnStepDistance TEXT,
-    $columnStepCalories TEXT,
-    $columnDate TEXT,
-    )
+      CREATE TABLE IF NOT EXISTS $tableSteps (
+        $columnId INTEGER PRIMARY KEY,
+        $columnSteps TEXT,
+        $columnStepDistance TEXT,
+        $columnStepCalories TEXT,
+        $columnDate TEXT
+      )
     ''');
   }
 
@@ -431,6 +431,15 @@ class UserDatabase {
           stepDistance: maps[index][columnStepDistance],
       );
     });
+  }
+
+  Future<void> deleteSteps(int id) async {
+    final db = await database;
+    await db.delete(
+      tableSteps,
+      where: '$columnId = ?',
+      whereArgs: [id],
+    );
   }
 
 }

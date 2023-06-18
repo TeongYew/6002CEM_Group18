@@ -29,6 +29,15 @@ class _StepCounterLogState extends State<StepCounterLog> {
     });
   }
 
+  Future<void> _deleteSteps(Steps activity) async {
+    // calls the db and delete the activity
+    final db = UserDatabase.instance;
+    await db.deleteSteps(activity.id!);
+
+    setState(() {
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,6 +73,21 @@ class _StepCounterLogState extends State<StepCounterLog> {
               itemCount: _stepsLog.length,
               itemBuilder: (context, index) {
                 final activity = _stepsLog[index];
+                return Dismissible(
+                  key: ValueKey(activity.id),
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: const Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                  ),
+                ),
+                direction: DismissDirection.endToStart,
+                onDismissed: (direction) {
+                    _deleteSteps(activity);
+                },
                   child: Card(
                     child: ListTile(
                       isThreeLine: true,
@@ -76,7 +100,7 @@ class _StepCounterLogState extends State<StepCounterLog> {
                         ],
                       ),
                     ),
-                );
+                ));
               },
             ),
           ),
@@ -85,3 +109,5 @@ class _StepCounterLogState extends State<StepCounterLog> {
     );
   }
 }
+
+

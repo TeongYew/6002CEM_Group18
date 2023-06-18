@@ -17,7 +17,7 @@ class FitnessApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: StepCounterPage.routeName,
+      initialRoute: MainMenu.routeName,
 
       routes: {
         MainMenu.routeName : (context) => MainMenu(),
