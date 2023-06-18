@@ -1,13 +1,15 @@
 import 'package:fitness_tracker_app/calorie_counter.dart';
 import 'package:fitness_tracker_app/calorie_tracker.dart';
 import 'package:fitness_tracker_app/main_menu.dart';
-import 'package:fitness_tracker_app/model/step_counter.dart';
+import 'package:fitness_tracker_app/step_counter.dart';
 import 'package:fitness_tracker_app/running_tracker_log.dart';
 import 'package:fitness_tracker_app/running_tracker_page.dart';
 import 'package:fitness_tracker_app/settings.dart';
+import 'package:fitness_tracker_app/step_counter_log.dart';
 import 'package:flutter/material.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(FitnessApp());
 }
 
@@ -15,7 +17,7 @@ class FitnessApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: MainMenu.routeName,
+      initialRoute: StepCounterPage.routeName,
 
       routes: {
         MainMenu.routeName : (context) => MainMenu(),
@@ -25,6 +27,7 @@ class FitnessApp extends StatelessWidget {
         StepCounterPage.routeName:(context)=> StepCounterPage(),
         RunningTrackerPage.routeName: (context)=> RunningTrackerPage(),
         RunningTrackerLog.routeName: (context)=> RunningTrackerLog(),
+        StepCounterLog.routeName: (context)=> StepCounterLog(),
       },
       debugShowCheckedModeBanner: false,
       title: "Fitness Tracker App",
