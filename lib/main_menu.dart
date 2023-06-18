@@ -4,6 +4,7 @@ import 'package:fitness_tracker_app/db/user_database.dart';
 import 'package:fitness_tracker_app/model/user.dart';
 import 'package:fitness_tracker_app/running_tracker_page.dart';
 import 'package:fitness_tracker_app/settings.dart';
+import 'package:fitness_tracker_app/step_counter.dart';
 import 'package:flutter/material.dart';
 
 class MainMenu extends StatefulWidget {
@@ -185,7 +186,7 @@ class _MainMenuState extends State<MainMenu> {
                           children: [
                             IconButton(
                               onPressed: () {
-                                Navigator.of(context).pushNamed(RunningTrackerPage.routeName);
+                                Navigator.of(context).pushNamed(StepCounterPage.routeName);
                               },
                               icon: const Icon(Icons.directions_walk),
                               iconSize: 48,

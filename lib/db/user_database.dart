@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:fitness_tracker_app/model/food_log.dart';
+
+import 'package:fitness_tracker_app/model/steps_model.dart';
 import 'package:fitness_tracker_app/model/user.dart';
 import 'package:fitness_tracker_app/model/running_activity_model.dart';
 import 'package:fitness_tracker_app/model/running_goal_model.dart';
@@ -9,8 +11,7 @@ import 'package:fitness_tracker_app/model/running_goal_model.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-class UserDatabase{
-
+class UserDatabase {
   static final UserDatabase instance = UserDatabase.init();
 
   static Database? _database;
@@ -21,21 +22,24 @@ class UserDatabase{
   static const String columnId = 'id';
   static const String columnDistance = 'distance';
   static const String columnDuration = 'duration';
+  static const String columnSteps = 'steps';
+  static const String columnStepCalories = 'stepCalories';
+  static const String columnStepDistance = 'stepDistance';
+  static const String columnDate = 'date';
 
-  Future<Database> get database async{
+  Future<Database> get database async {
     //check if database already exists
-    if(_database != null){
+    if (_database != null) {
       return _database!;
     }
 
     //if not then initialise the database
     _database = await _initDB('user.db');
     return _database!;
-
   }
 
   //initialise database
-  Future<Database> _initDB(String filePath) async{
+  Future<Database> _initDB(String filePath) async {
     //get default database location
     final dbPath = await getDatabasesPath();
     //join the path to our user.db
@@ -43,7 +47,6 @@ class UserDatabase{
     //open our database
     return await openDatabase(path, version: 1, onCreate: _createDB);
   }
-
 
   Future _createDB(Database db, int version) async {
     final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
@@ -89,9 +92,18 @@ class UserDatabase{
       )
     ''');
 
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS $tableSteps (
+        $columnId INTEGER PRIMARY KEY,
+        $columnSteps TEXT,
+        $columnStepDistance TEXT,
+        $columnStepCalories TEXT,
+        $columnDate TEXT
+      )
+    ''');
   }
 
-  Future<User> createUser(User user) async{
+  Future<User> createUser(User user) async {
     //access the database
     final db = await instance.database;
 
@@ -105,19 +117,17 @@ class UserDatabase{
     //access the database
     final db = await instance.database;
     final maps = await db.query(
-        tableUser,
-        columns: UserFields.values,
-        where: '${UserFields.id} = ?',
-        whereArgs: [id],
+      tableUser,
+      columns: UserFields.values,
+      where: '${UserFields.id} = ?',
+      whereArgs: [id],
     );
 
-    if(maps.isNotEmpty){
+    if (maps.isNotEmpty) {
       return User.fromJson(maps.first);
-    }
-    else{
+    } else {
       throw Exception('ID $id not found');
     }
-
   }
 
   Future<List<User>> readAllUser() async {
@@ -166,13 +176,12 @@ class UserDatabase{
       columns: UserFields.values,
     );
 
-    if(maps.isNotEmpty){
+    if (maps.isNotEmpty) {
       existUser = true;
       //return User.fromJson(maps.first);
     }
 
     return existUser;
-
   }
 
   Future<User> getUser() async {
@@ -183,13 +192,11 @@ class UserDatabase{
       columns: UserFields.values,
     );
 
-    if(maps.isNotEmpty){
+    if (maps.isNotEmpty) {
       return User.fromJson(maps.first);
-    }
-    else{
+    } else {
       throw Exception('No user');
     }
-
   }
 
   Future<int> updateUserCurrentCalories(User user, int calories) async {
@@ -199,10 +206,10 @@ class UserDatabase{
       SET currentCalories = ${calories}
       WHERE ${UserFields.id} = ${user.id};
     ''');
-
   }
 
-  Future<int> updateUserDetails(User user, int age, double weight, double height, String goal) async {
+  Future<int> updateUserDetails(
+      User user, int age, double weight, double height, String goal) async {
     final db = await instance.database;
 
     return db.rawUpdate('''
@@ -210,7 +217,6 @@ class UserDatabase{
       SET age = ${age}, weight = ${weight}, height = ${height}, goal = '${goal}' 
       WHERE ${UserFields.id} = ${user.id};
     ''');
-
   }
 
   Future<int> updateUserTargetCalories(User user, int calories) async {
@@ -220,20 +226,19 @@ class UserDatabase{
       SET targetCalories = ${calories}
       WHERE ${UserFields.id} = ${user.id};
     ''');
-
   }
 
-  Future<int> updateUserTest(User user, int age, double weight, double height, String goal) async {
+  Future<int> updateUserTest(
+      User user, int age, double weight, double height, String goal) async {
     final db = await instance.database;
     return db.rawUpdate('''
       UPDATE ${tableUser}
       SET age = ${age}, weight = ${weight}, height = ${height}, goal = '${goal}' 
       WHERE ${UserFields.id} = ${user.id};
     ''');
-
   }
 
-  Future<Food> createFood(Food food) async{
+  Future<Food> createFood(Food food) async {
     //access the database
     final db = await instance.database;
 
@@ -253,13 +258,11 @@ class UserDatabase{
       whereArgs: [id],
     );
 
-    if(maps.isNotEmpty){
+    if (maps.isNotEmpty) {
       return Food.fromJson(maps.first);
-    }
-    else{
+    } else {
       throw Exception('ID $id not found');
     }
-
   }
 
   Future<List<Food>> readFoodUsingDate(String date) async {
@@ -274,14 +277,12 @@ class UserDatabase{
       orderBy: orderBy,
     );
 
-    if(result.isNotEmpty){
+    if (result.isNotEmpty) {
       //return a list of all the food
       return result.map((json) => Food.fromJson(json)).toList();
-    }
-    else{
+    } else {
       throw Exception('No food today');
     }
-
   }
 
   Future<List<Food>> readAllFood() async {
@@ -403,6 +404,42 @@ class UserDatabase{
       // If there are no existing goals, insert a new goal
       await db.insert(tableGoals, goal.toMap());
     }
+  }
+
+  Future<void> addStepsToDatabase(String steps, String stepCalories,
+      String stepDistance, String date) async {
+    final db = await database;
+    final now = DateTime.now();
+    final formattedDate = "${now.day}-${now.month}-${now.year}";
+
+    await db.insert(tableSteps, {
+      'steps': steps,
+      'stepCalories': stepCalories,
+      'stepDistance': stepCalories,
+      'date': formattedDate
+    });
+  }
+
+  Future<List<Steps>> getDataFromStepsTable() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(tableSteps);
+    return List.generate(maps.length, (index) {
+      return Steps(
+          steps: maps[index][columnSteps],
+          date: maps[index][columnDate],
+          stepCalories: maps[index][columnStepCalories],
+          stepDistance: maps[index][columnStepDistance],
+      );
+    });
+  }
+
+  Future<void> deleteSteps(int id) async {
+    final db = await database;
+    await db.delete(
+      tableSteps,
+      where: '$columnId = ?',
+      whereArgs: [id],
+    );
   }
 
 }
