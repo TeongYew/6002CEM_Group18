@@ -16,7 +16,7 @@ class _SetGoalWidgetState extends State<SetGoalWidget> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Set Goal'),
+      title: const Text('Set Goal'),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -45,7 +45,7 @@ class _SetGoalWidgetState extends State<SetGoalWidget> {
             }
             Navigator.of(context).pop();
           },
-          child: Text('Set Goal'),
+          child: const Text('Set Goal'),
         ),
       ],
     );
