@@ -33,10 +33,8 @@ class _StepCounterPageState extends State<StepCounterPage> {
   void initState() {
     super.initState();
     fetchUser();
-    //resetStepCount();
     calculateCalories();
     initStepCounter();
-    //insertSteps();
     cron.schedule(Schedule.parse('59 23 * * * '), () async {
       insertSteps();
     });
@@ -44,12 +42,13 @@ class _StepCounterPageState extends State<StepCounterPage> {
 
   void insertSteps() async {
     final formattedDate = "${now.day}-${now.month}-${now.year}";
-    await UserDatabase.instance.addStepsToDatabase("4000","137.21","2881", "19-6-2023" );
-    // _steps,
-    // (((((double.parse(_steps) * height * strideConst) / 100)) / 1.4 / 60) * 4).toStringAsFixed(2),
-    // ((double.parse(_steps) * height * strideConst) / 100).toStringAsFixed(0),
-    // formattedDate);
+    await UserDatabase.instance.addStepsToDatabase(
+    _steps,
+    (((((double.parse(_steps) * height * strideConst) / 100)) / 1.4 / 60) * 4).toStringAsFixed(2),
+    ((double.parse(_steps) * height * strideConst) / 100).toStringAsFixed(0),
+    formattedDate);
     print("Data inserted successfully");
+    resetStepCount();
   }
 
   void onStepCount(StepCount event) {

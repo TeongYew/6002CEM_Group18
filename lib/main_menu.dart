@@ -6,6 +6,8 @@ import 'package:fitness_tracker_app/running_tracker_page.dart';
 import 'package:fitness_tracker_app/settings.dart';
 import 'package:fitness_tracker_app/step_counter.dart';
 import 'package:flutter/material.dart';
+import 'package:cron/cron.dart';
+import 'dart:developer';
 
 class MainMenu extends StatefulWidget {
   static String routeName = '/mainMenu';
@@ -25,6 +27,7 @@ class _MainMenuState extends State<MainMenu> {
 
     //get the user information
     refreshUser();
+    setCron();
   }
 
   @override
@@ -51,6 +54,50 @@ class _MainMenuState extends State<MainMenu> {
     //refresh the page
     setState(() {
     });
+  }
+  Future<void> setCron() async {
+    //initialise cron
+    final cron = Cron();
+
+    log('cron ran !');
+
+    try {
+      //schedule cron to run everyday at 00:00
+      //'sec, min, hr, day of month, month, day of week'
+      cron.schedule(Schedule.parse('00 00 00 * * *'), () async {
+
+        //reset the consumed calories
+        await UserDatabase.instance.updateUserCurrentCalories(user, 0);
+
+        //refresh the page
+        setState(() {
+          //refresh the user after updating
+          refreshUser();
+        });
+
+        log('cron resetted !');
+        // await cron.close();
+        // log('cron closed !');
+      });
+
+    } on ScheduleParseException {
+      //close cron if there is an exception
+      await cron.close();
+    }
+
+  }
+
+  void resetApp() async {
+
+    //delete the user and all the food
+    //set exist user to false
+    await UserDatabase.instance.deleteAllUser();
+    await UserDatabase.instance.deleteAllFood();
+    existUser = false;
+
+    //refresh the page
+    setState(() {});
+
   }
 
   @override
@@ -234,14 +281,7 @@ class _MainMenuState extends State<MainMenu> {
                           children: [
                             IconButton(
                               onPressed: () {
-                                //refresh the page
-                                setState(() {
-                                  //delete all users and foods in the app
-                                  //set existUser to false
-                                  UserDatabase.instance.deleteAllUser();
-                                  UserDatabase.instance.deleteAllFood();
-                                  existUser = false;
-                                });
+                                resetApp();
                               },
                               icon: const Icon(Icons.refresh),
                               iconSize: 48,

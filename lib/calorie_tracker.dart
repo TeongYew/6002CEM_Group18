@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:fitness_tracker_app/db/user_database.dart';
 import 'package:fitness_tracker_app/model/food_log.dart';
 import 'package:fitness_tracker_app/model/user.dart';
