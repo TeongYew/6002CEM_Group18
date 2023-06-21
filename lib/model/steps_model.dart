@@ -1,4 +1,4 @@
-const String tableSteps = 'steps';
+const String tableSteps = 'stepsActivity';
 
 class Steps {
   int? id;
@@ -11,6 +11,7 @@ class Steps {
 
   Map<String, dynamic> toMap() {
     return {
+
       'steps': steps,
       'date': date,
       'stepCalories': stepCalories,

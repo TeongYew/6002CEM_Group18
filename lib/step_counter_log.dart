@@ -20,21 +20,21 @@ class _StepCounterLogState extends State<StepCounterLog> {
     _loadSteps();
   }
 
+  //LOAD STEPS IN DB
   Future<void> _loadSteps() async {
     final db = UserDatabase.instance;
     final steps = await db.getDataFromStepsTable();
-
     setState(() {
       _stepsLog = steps;
     });
   }
 
+  //DELETE STEPS IN DB
   Future<void> _deleteSteps(Steps activity) async {
-    // calls the db and delete the activity
     final db = UserDatabase.instance;
     await db.deleteSteps(activity.id!);
-
     setState(() {
+      _stepsLog.removeWhere((a) => a.id == activity.id);
     });
   }
 
@@ -55,15 +55,7 @@ class _StepCounterLogState extends State<StepCounterLog> {
             widthFactor: 1.0,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF154c79),
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                ),
+              child: Column(
               ),
             ),
           ),
@@ -82,12 +74,12 @@ class _StepCounterLogState extends State<StepCounterLog> {
                     child: const Icon(
                       Icons.delete,
                       color: Colors.white,
+                    ),
                   ),
-                ),
-                direction: DismissDirection.endToStart,
-                onDismissed: (direction) {
+                  direction: DismissDirection.endToStart,
+                  onDismissed: (direction) {
                     _deleteSteps(activity);
-                },
+                  },
                   child: Card(
                     child: ListTile(
                       isThreeLine: true,
@@ -100,7 +92,8 @@ class _StepCounterLogState extends State<StepCounterLog> {
                         ],
                       ),
                     ),
-                ));
+                  ),
+                );
               },
             ),
           ),

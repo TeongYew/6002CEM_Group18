@@ -94,7 +94,7 @@ class UserDatabase {
 
     await db.execute('''
       CREATE TABLE IF NOT EXISTS $tableSteps (
-        $columnId INTEGER PRIMARY KEY,
+        $columnId INTEGER PRIMARY KEY AUTOINCREMENT,
         $columnSteps TEXT,
         $columnStepDistance TEXT,
         $columnStepCalories TEXT,
@@ -409,14 +409,12 @@ class UserDatabase {
   Future<void> addStepsToDatabase(String steps, String stepCalories,
       String stepDistance, String date) async {
     final db = await database;
-    final now = DateTime.now();
-    final formattedDate = "${now.day}-${now.month}-${now.year}";
 
     await db.insert(tableSteps, {
       'steps': steps,
       'stepCalories': stepCalories,
-      'stepDistance': stepCalories,
-      'date': formattedDate
+      'stepDistance': stepDistance,
+      'date': date
     });
   }
 
@@ -425,6 +423,7 @@ class UserDatabase {
     final List<Map<String, dynamic>> maps = await db.query(tableSteps);
     return List.generate(maps.length, (index) {
       return Steps(
+          id:  maps[index][columnId],
           steps: maps[index][columnSteps],
           date: maps[index][columnDate],
           stepCalories: maps[index][columnStepCalories],

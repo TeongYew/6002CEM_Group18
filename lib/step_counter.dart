@@ -11,6 +11,7 @@ import 'package:cron/cron.dart';
 
 class StepCounterPage extends StatefulWidget {
   static String routeName = "/StepCounterPage";
+  const StepCounterPage({super.key});
   @override
   State<StepCounterPage> createState() => _StepCounterPageState();
 }
@@ -18,6 +19,7 @@ class StepCounterPage extends StatefulWidget {
 class _StepCounterPageState extends State<StepCounterPage> {
   late Stream<StepCount> _stepCountStream;
   String _steps = '0';
+  String calories = '0';
   double height = 0;
   double weight = 0;
   double strideConst = 0.414;
@@ -32,21 +34,21 @@ class _StepCounterPageState extends State<StepCounterPage> {
     super.initState();
     fetchUser();
     //resetStepCount();
+    calculateCalories();
     initStepCounter();
-    insertSteps();
+    //insertSteps();
     cron.schedule(Schedule.parse('59 23 * * * '), () async {
       insertSteps();
     });
-
   }
 
   void insertSteps() async {
     final formattedDate = "${now.day}-${now.month}-${now.year}";
-    await UserDatabase.instance.addStepsToDatabase(
-        _steps,
-        (((((double.parse(_steps) * height * strideConst) / 100)) / 1.4 / 60) * 4).toStringAsFixed(2),
-        ((double.parse(_steps) * height * strideConst) / 100).toStringAsFixed(0),
-        formattedDate);
+    await UserDatabase.instance.addStepsToDatabase("4000","137.21","2881", "19-6-2023" );
+    // _steps,
+    // (((((double.parse(_steps) * height * strideConst) / 100)) / 1.4 / 60) * 4).toStringAsFixed(2),
+    // ((double.parse(_steps) * height * strideConst) / 100).toStringAsFixed(0),
+    // formattedDate);
     print("Data inserted successfully");
   }
 
@@ -72,7 +74,7 @@ class _StepCounterPageState extends State<StepCounterPage> {
     if (!mounted) return;
   }
 
-  void resetStepCount(){
+  void resetStepCount() {
     setState(() {
       _steps = '0';
     });
@@ -88,6 +90,10 @@ class _StepCounterPageState extends State<StepCounterPage> {
     });
   }
 
+  void calculateCalories() {
+    calories =(((((double.parse(_steps) *height * strideConst) / 100)) / 1.4 / 60) * 4).toStringAsFixed(2);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,7 +105,7 @@ class _StepCounterPageState extends State<StepCounterPage> {
             },
             icon: const Icon(Icons.arrow_back_rounded),
           ),
-          backgroundColor: Color(0xFF0E2376),
+          backgroundColor: const Color(0xFF0E2376),
           elevation: 0,
           title: const Text(
             "Step Counter",
@@ -112,12 +118,14 @@ class _StepCounterPageState extends State<StepCounterPage> {
         body: Center(
           child: Column(
             children: [
-              SizedBox(height: 20,),
+              const SizedBox(
+                height: 20,
+              ),
               CircularPercentIndicator(
                 radius: 130,
                 lineWidth: 15,
                 percent: double.parse(_steps) / 10000,
-                progressColor: Color(0xFF0E2376),
+                progressColor: const Color(0xFF0E2376),
                 backgroundColor: Colors.grey.shade400,
                 circularStrokeCap: CircularStrokeCap.round,
                 center: SizedBox(
@@ -133,14 +141,20 @@ class _StepCounterPageState extends State<StepCounterPage> {
                       ),
                       const Text(
                         "Step Goal: 10000",
-                        style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold),
                       )
                     ],
                   ),
                 ),
                 footer: const Text(
                   "Step Count",
-                  style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(
@@ -149,14 +163,14 @@ class _StepCounterPageState extends State<StepCounterPage> {
               Container(
                 width: 300,
                 decoration: BoxDecoration(
-                  color: Color(0xFF0E2376),
+                  color: const Color(0xFF0E2376),
                   borderRadius: const BorderRadius.all(Radius.circular(20)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.shade800,
                       spreadRadius: 0,
                       blurRadius: 2,
-                      offset: Offset(-4, -4),
+                      offset: const Offset(-4, -4),
                     ),
                     const BoxShadow(
                       color: Colors.black,
@@ -176,14 +190,7 @@ class _StepCounterPageState extends State<StepCounterPage> {
                         Column(
                           children: [
                             Text(
-                              (((((double.parse(_steps) *
-                                                  height *
-                                                  strideConst) /
-                                              100)) /
-                                          1.4 /
-                                          60) *
-                                      4)
-                                  .toStringAsFixed(2),
+                              (((((double.parse(_steps) *height * strideConst) / 100)) / 1.4 / 60) * 4).toStringAsFixed(2),
                               style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -230,14 +237,14 @@ class _StepCounterPageState extends State<StepCounterPage> {
               Container(
                 width: 350,
                 decoration: BoxDecoration(
-                  color: Color(0xFF0E2376),
+                  color: const Color(0xFF0E2376),
                   borderRadius: const BorderRadius.all(Radius.circular(20)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.shade800,
                       spreadRadius: 0,
                       blurRadius: 2,
-                      offset: Offset(-4, -4),
+                      offset: const Offset(-4, -4),
                     ),
                     const BoxShadow(
                       color: Colors.black,
