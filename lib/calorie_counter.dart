@@ -70,7 +70,7 @@ class _CalorieCounterState extends State<CalorieCounter> {
                     if (value == null || value.isEmpty) {
                       return "Please enter your age";
                     }
-                    else if (int.tryParse(value!) == null) {
+                    else if (int.tryParse(value) == null) {
                       return "Please enter your a valid number for your age";
                     }
                     return null;
@@ -94,7 +94,7 @@ class _CalorieCounterState extends State<CalorieCounter> {
                     if (value == null || value.isEmpty) {
                       return "Please enter your height";
                     }
-                    else if (double.tryParse(value!) == null) {
+                    else if (double.tryParse(value) == null) {
                       return "Please enter your a valid number for your height";
                     }
                     return null;
@@ -118,7 +118,7 @@ class _CalorieCounterState extends State<CalorieCounter> {
                     if (value == null || value.isEmpty) {
                       return "Please enter your weight";
                     }
-                    else if (int.tryParse(value!) == null) {
+                    else if (int.tryParse(value) == null) {
                       return "Please enter your a valid number for your weight";
                     }
                     return null;

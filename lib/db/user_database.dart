@@ -1,13 +1,9 @@
 import 'dart:async';
-import 'dart:developer';
-
 import 'package:fitness_tracker_app/model/food_log.dart';
-
 import 'package:fitness_tracker_app/model/steps_model.dart';
 import 'package:fitness_tracker_app/model/user.dart';
 import 'package:fitness_tracker_app/model/running_activity_model.dart';
 import 'package:fitness_tracker_app/model/running_goal_model.dart';
-
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 

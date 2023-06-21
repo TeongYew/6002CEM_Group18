@@ -1,10 +1,7 @@
-import 'dart:math';
 import 'package:fitness_tracker_app/db/user_database.dart';
 import 'package:fitness_tracker_app/model/food_log.dart';
 import 'package:fitness_tracker_app/model/user.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer';
-import 'package:cron/cron.dart';
 
 class CalorieTracker extends StatefulWidget {
   static String routeName = '/calorieTracker';
@@ -206,8 +203,7 @@ class _CalorieTrackerState extends State<CalorieTracker> {
             ElevatedButton(
               onPressed: addFoodLog,
               style: ElevatedButton.styleFrom(
-                primary: Colors.green,
-                onPrimary: Colors.white,
+                foregroundColor: Colors.white, backgroundColor: Colors.green,
               ),
               child: const Text('Add'),
             ),
